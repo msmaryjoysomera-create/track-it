@@ -51,6 +51,6 @@ export default async function handler(req, res) {
 
     return res.status(405).json({ error: 'method not allowed' });
   } catch (e) {
-    return res.status(500).json({ error: 'storage unavailable' });
+    return res.status(500).json({ error: 'storage unavailable', detail: String(e && e.message || e), hasToken: !!process.env.BLOB_READ_WRITE_TOKEN });
   }
 }
