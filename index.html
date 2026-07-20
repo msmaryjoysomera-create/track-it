@@ -828,7 +828,7 @@ function askNum(title,desc,value,cb){
   $('mTitle').textContent=title;
   $('mDesc').textContent=desc;
   const inp=$('mInput');
-  inp.type='number';inp.style.display='block';inp.value=value;
+  inp.type='number';inp.setAttribute('inputmode','decimal');inp.style.display='block';inp.value=value;
   $('mOk').textContent='Save';
   $('mCancel').textContent='Cancel';
   modalCb=()=>{const n=parseFloat(inp.value);if(!isNaN(n)&&n>0)cb(n);};cancelCb=null;
@@ -840,7 +840,7 @@ function askText(title,desc,value,cb){
   $('mTitle').textContent=title;
   $('mDesc').textContent=desc;
   const inp=$('mInput');
-  inp.type='text';inp.style.display='block';inp.value=value;
+  inp.type='text';inp.setAttribute('inputmode','text');inp.style.display='block';inp.value=value;
   $('mOk').textContent='Save';
   $('mCancel').textContent='Cancel';
   modalCb=()=>cb(inp.value);cancelCb=null;
