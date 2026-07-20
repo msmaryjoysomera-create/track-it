@@ -481,15 +481,22 @@ function genTeamCode(){
 async function sendToJun(){
   const days={};
   state.songs.forEach(s=>{days[s.date]=(days[s.date]||0)+1;});
-  if(state.teamCode){
-    try{
-      const res=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({team:state.teamCode,name:state.name||'Member',days})});
-      if(res.ok){toast('Sent to Jun \u2713');return;}
-    }catch(e){/* offline or preview — fall back to code */}
+  if(!state.teamCode){
+    showCode('TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days})))),
+      'No team code set','You haven\'t entered Jun\'s team code, so auto-send is off. Paste this code to him instead, or add the team code via the \u2699 menu.');
+    return;
   }
-  const code='TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days}))));
-  showCode(code,'Couldn\'t reach the server','Copy this code and paste it to Jun in chat instead — his app can import it.');
+  try{
+    const res=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({team:state.teamCode,name:state.name||'Member',days})});
+    if(res.ok){toast('Sent to Jun \u2713');return;}
+    let why='';try{const j=await res.json();why=j.error||('HTTP '+res.status);}catch(e){why='HTTP '+res.status;}
+    const code='TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days}))));
+    showCode(code,'Server said: '+why,'Auto-send didn\'t go through. Paste this code to Jun instead — his Import will accept it.');
+  }catch(e){
+    const code='TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days}))));
+    showCode(code,'Couldn\'t reach the server','Network error ('+(e&&e.message||'offline')+'). Paste this code to Jun instead — his Import will accept it.');
+  }
 }
 
 let teamSyncing=false;
