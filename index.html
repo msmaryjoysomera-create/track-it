@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0E1116">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Track It">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAABGklEQVR4nGOUUdZjoCVg+f//P20tYKC1Bf8ZaO4DmppPFx+MkDgw21HPwMBwyqORVAuYGP7/J4ggpkOtIUI9MiI5iCDq7y2WY2BgUIp9RB0foNrwH2I61BoifIAd3F8iz8DAoBjzEMMH+LjE+gBiOtQaDB+gc///z+w6ndl1GqtRTFg9hupGAtzM7jMQdmb3GUyjiMhoBH2Ah8vAwETAdIoB4foATQFJXAaiyiIKg4jySJ5SpA9hTynSxxrJWBwtF3770UpVCAPDQ1i4Uwr1sZjCwMCApzSVDb+FVRy/hzABOUWFbNhNqCPCbtKqsJMJu0GkeiaG/wwE0WH7Uojqw/alxKhHRoyCItIk+YBUMCwqfdqCYdFsoa0FAIKYkiK29IAtAAAAAElFTkSuQmCC">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAEhklEQVR4nO3dsW7TQBzH8UuVF2BAINGUAhIwtQOITqgjPEG7wAO0YmlF9zIXiSUSD0AZ4AnoiDqB6MBWOjRAeY8wREJuyM/2OT7/7bvvR11SLoed/vjFPse0t3hnxQGz9MfjsfU2oKUWrDcA7UU4IBEOSIQDEuGARDgg9Z3jVBaz0RyQCAekPu8qUGgOSH2KAwrNAYlwQGKdAxLNAYlwQCIckAgHJFZIIdEckDiVhURzQCIckLjwBonmgEQ4IBEOSIQDUt9xlz0EmgMS4YBEOCARDkiEAxLhgMQle0hceIPE2wokPkMKieaARDggEQ5IhAMS6xyQ+tYbENCjT/vZh1+f7s8eB6F3feme9TbUbyoWWUSkvNjCkROLLCJSRlQHpCWT4TUyZQmvkCa746X1rg0ieVtZO9r3fcqXJ95PSUrip7Ip73uxSI451o5eNfasdEQSDoRAOCDFvEIayPm7pezD289/W21JaITDw1Qsst+MMiKEo5SZsfh/QGQR4ZijWGEyKozshOTvsq999yN6PWmOAueHN4OObzPCAYlw5KlWA9GUR+p3vAXa/The1Vacyo4u/1O79eyX1ZYgyzgco1kNPPkmETFndsl+dLhcNGASkZ+BN4Q3FsnmgLQwGRVGonacrUBacGPX8JdvGYwOl4unrcxk2o580RyQmg7H6P1yY8/CnFqxzgHn3NbBt+zDt3sPrbbkH8JhbyoW2W/aRqRDtyZ0a0Gi1LRbBydFAyYReVDDFvnjgNRMYTIqjKxXZy68RdgbphOWQXPY2PYsA9/xtSAckBpfIa0sommr1cD2wQkrpGgLTmWZVqI5IBEOSIQDEuGARDggEQ5IhANSf9yRu8IDbSfT5qA5IBEOSIQDEuGARDggEQ5IXLJnWonmgEQ4IHXnNzV1q6e7Na1Ac0DipiamlWgOSIQD0kKztzR17fajMNMOd1crzDjcXW34h0VzQCIcNnzLo1rZzIlwQCIcZsqXgUltOFZIbacd7qw65168+Z4/wAr/YZy9mRGxjcUEl+zbMu1wZyXEdsyj6WOOpc2zxp6FOXFACmmh4fXRsXMDzxoYbJ4VzlmZybRd+aI5INmEo3x5+NYMamR2Kjv5qV98uJs/AIaM1zlmRoRYtEQrfpf9YOOH2d8daPdb8KrOjwNSSIQjT7VKsyzCWhEOSISjgG8NRFMbjnAgB+EoVr4MYqoN16lL9oGU2v3Bxqlz7uLj/fwBkenMHW+BeO3+4sapc+7P5YgsxhiLCT4J5i3iNEzpzmdIA0l893NxQAopknAcr+819qx0RBIOhBBPOHxrgNoolPI6R7I7XlY8zeGcO15/WfvIlPWuXL1hvQ31e/z5tfojYlFenOGYmIoIsfAVczgwp+RXSKGlfuENOVI+lUWBqE5lUS/CAYlwQCIckAgHJMIBiXBAasVd9mgnmgMS4YBEOCBx4Q0SzQGJcEDikj0kmgMS4YDEZ0gh0RyQCAckwgGJcEBinQMSzQGJC2+QaA5IhAMSK6SQaA5InMpCojkgEQ5IhAMS4YBEOCARDkh/AamS0eEcQITlAAAAAElFTkSuQmCC">
+<link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjogIlRyYWNrIEl0IiwgInNob3J0X25hbWUiOiAiVHJhY2sgSXQiLCAiZGVzY3JpcHRpb24iOiAiSnVuJ3MgbXVzaWMgYW5ub3RhdGlvbiBlYXJuaW5ncyBsb2ciLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgIm9yaWVudGF0aW9uIjogInBvcnRyYWl0IiwgImJhY2tncm91bmRfY29sb3IiOiAiIzBFMTExNiIsICJ0aGVtZV9jb2xvciI6ICIjMEUxMTE2IiwgInN0YXJ0X3VybCI6ICIuIiwgImljb25zIjogW3sic3JjIjogImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBTUFBQUFEQUNBSUFBQURkdnZ0UUFBQUU3VWxFUVZSNG5PM2R2NDRUVnhoQThldVZYeUJGQkZMd3NvQkVVa0VUUVJWUmtpZUFJc2tETEVxekVkUWg5VVpLczFJZWdLVkluaUNVRVJVSWluU0VZcDNBZ3ppRklUS2UzV1htSHQrNWYvYjg1R3BrajBhelI5L1lNL2JzNU1LVmEwR0tOVjBzRnJtM1FSWGJ5cjBCcXBzQkNURWdJUVlreElDRUdKQVFBeEl5RGNIelFJcm5CQkl5ZFFDSmNBSUpNU0FoVTQ5Z0lweEFRZ3hJaU9lQmhEaUJoQmlRRUFNU1lrQkN2SlFoeEFra3hJQ0VlQjVJaUJOSWlBRUo4V3E4RUNlUUVBTVNZa0JDREVqSU5IaC9JQUZPSUNFR0pNU0FoQmlRRUFNU1lrQkNERWlJM3djUzR0VjRJWDZwWG9qdmdZUVlrQkFERW1KQVFneElpT2VCaEV4emI4QjRidnp4Y0czSjg2L1hsMmlveWZudHozTnZRM0xkZEZhWkVkSCtlNkRUNituekJKMmk4WUI2eG1GRDBTYm5aODBld200OGVUam8rYzl2RDN1K1FnaVRjNDBHZEhOZ1BVdlBiR2lneGc5aFNtMXliblkxOXpaczNzMG5QMFcvOXRudEh6ZTRKYzF6QWdreElDRUdKT1FNWGNwSTZ1alI5dHFTeTkrOXliSWxJek1ncXB2TzZ2TG1NL0lRaHB4VVQvOG4xTTZBNHZXTW8rMkd2RDlRUjc4ZGNuUjRzZjhxang1dFgvNzIzOWdOS3BvVEtNYWdlcUpmVWdVREVtSkFnMFhQa2lhSGtEOXRYcGQwaDdTM3Q1MUFRc282a1RqdkRQbExqWDU0YVVZcEFYWFRXVjF1UnNYYUNtR1IvWEZTUGYrYkgxNGN1RTRpNzhvcmUrUi9EelEvM05uZzB6U3lyYndGRDhwaWZyalRkODFFM3BYWDlzZzVnZWFQZDBaNGlaTEtmd2hUMWJKOUNvdWVKZlBITzVlKytXZVRtMUs4M2YwWGEwdCtmZkJsbGkzcEt1Vmp2STdWVFdkMWVRa1plUWdyMTBuMTlIL0NDREtlQnlJYVh2bTdSODg0ZHZkZjVQMFk1Z1FxMGU3K3kwUlAzcmd0NTA5UksxOUVCYkc3L3pMWDM5RUpKTVNBeW5JdjluZ1UvVUtvem45MWtIU2JYZmtRVGlBaEJpU2swdnRFMTNza3FIZmx4M01DQ1RFZ0lRWWt4SUNFR0pBUUF4SmlRRUttaXdydkQ1UjBtMTM1SUU0Z0lRWWt4SUNFR0pBUUF4SmlRRUlNU0lqZkIzTGxpQk5JaUYrcWQrV0lFMGlJQVFtcDhrYmo5UjRINmwzNVNaeEFRZ3hJaU9lQlhEbmlCQ3JMd1EvWFIzNGhaRUJDREtnNEViTWsxL2dKQmxTbVFVRmtyQ2ZrL0ZjSFJNTXJmLzg0Mk91VnhjSGU5V3gvd1VVSWVmL1ZnVTczMFlaNlJwYVVOeG92MmpLUjczLzU2OWpsSmNoMkhtajc3dXMzdjEyTmUrSEdOK1pEU1hkSXpNb1A5cTV0ZkRzMnhVT1lrSndCUmN5UzlPTkh3MlM3MGZqeU1Sc1N4T3p1NjU2ckpjcjRFRmJOSS84aHJHZERnMUxUYVBJSEZIckVZVDNGS3VWai9ES1J0NTNQWmFaVHVGSUNXaktYNmt4RGhmY0hTaXZwRG1sdWJ4ZnhIa2oxTXFEQlpuZitIdm1GSlRNZ0lRWVVJMktXTkRsK2dnRkZHeFJFcS9VRUF5SjZadEZ3UGNHQW9JL0cwWFk5b2RyZmhTVTFiSWZNN3J3S0liejkvWXRqbHpldnl0L0dKeFczUXk2Y2pWeTY2cncvVUZMdWtDRjhEeVRFZ0lTMEdkRFRXdzlHZnVHWjFXWkFHazJ6QVVYTUVzZFBoTWtubjM2V2V4c1MrdXJQbjNzKzgrbXQrMG0zcEZYTlRxQ2xubGxZVDdUR0F3bzk0ckFlb3ZGRDJLcnU0Y3gwdURNVWtGTHdVb1lRTDZZS2FmOU50Skx5KzBCQ25FQkNERWlJQVFreElDRUdKTVNBaEJpUUVPOFBKTVFKSk1TQWhCaVFFSy9HQzNFQ0NURWdJUVlreE84RENYRUNDZkZMOVVLY1FFSU1TSWdCQ1RFZ0lRWWt4UE5BUXB4QVFyd2FMOFFKSk1TQWhIZ3BRNGdUU0lnQkNmRThrQkFua0JBREVtSkFRZ3hJaUFFSk1TQWgvd0d2VFFVSi94dDZvQUFBQUFCSlJVNUVya0pnZ2c9PSIsICJzaXplcyI6ICIxOTJ4MTkyIiwgInR5cGUiOiAiaW1hZ2UvcG5nIn0sIHsic3JjIjogImRhdGE6aW1hZ2UvcG5nO2Jhc2U2NCxpVkJPUncwS0dnb0FBQUFOU1VoRVVnQUFBZ0FBQUFJQUNBSUFBQUI3R2tPdEFBQU13RWxFUVZSNG5PM2R2NjRjNVIzSDRUblIzQUJTb2lERnh6RkVnbFJRSklLS1VKSXJzQXVTQ3pDaUlZcnJrTnBJTkZhNEFFd1JyaUNVaWFzZ0tKSUtYR0NDY3grYjRpRHJLTmlyc3pQdnY1bnY4MVNXYk8rK28xMzlQdlB1dnptNzlvdFhKZ0R5eklmRG9mY2FBT2pnUjcwWEFFQWZBZ0FRU2dBQVFna0FRQ2dCQUFnbEFBQ2hCQUFnbEFBQWhCSUFnRkFDQUJCS0FBQkNDUUJBS0FFQUNDVUFBS0VFQUNDVUFBQ0VFZ0NBVUFJQUVFb0FBRUlKQUVDb2VacGNGQjRna1IwQVFDZ0JBQWdsQUFDaEJBQWdsQUFBaEJJQWdGQ3pUNEVDWkxJREFBZ2xBQUNoQkFBZ2xBQUFoQklBZ0ZBQ0FCQktBQUJDemI0R0FKREpEZ0FnbEFBQWhCSUFnRkFDQUJCS0FBQkN1U2c4UUNnN0FJQlFBZ0FRU2dBQVFna0FRQ2dCQUFnbEFBQ2hCQUFnbEFBQWhCSUFnRkFDQUJCS0FBQkNDUUJBS0FFQUNEWDdNVkNBVEhZQUFLRUVBQ0NVQUFDRUVnQ0FVQUlBRUVvQUFFSUpBRUNvZWZKRkFJQklkZ0FBb1FRQUlKUUFBSVFTQUlCUUFnQVFTZ0FBUWdrQVFDZ0JBQWcxK3hvWVFDWTdBSUJRQWdBUVNnQUFRZ2tBUUNnQkFBZ2xBQUNoQkFBZ2xBQUFoQklBZ0ZBQ0FCQktBQUJDemRQQnJ3RUJKTElEQUFnbEFBQ2hCQUFnbEFBQWhCSUFnRkFDQUJCS0FBQkNDUUJBS0FFQUNDVUFBS0VFQUNDVUFBQ0VFZ0NBVUFJQUVFb0FBRUlKQUVBb0FRQUlKUUFBb1FRQUlKUUFBSVNhcDhsRjRRRVMyUUVBaEJJQWdGQ3pGNEFBTXRrQkFJUVNBSUJRQWdBUWF2WXBVSUJNZGdBQW9RUUFJSlFBQUlRU0FJQlFBZ0FRU2dBQVFna0FRQ2dCQUFnbEFBQ2hCQUFnbEFBQWhCSUFnRkFDQUJCS0FBQkN6WlBmZ3dhSVpBY0FFRW9BQUVJSkFFQ291ZmNDaVBQYTM5NC84cmVmLy9iWTN3SUZuVDEvL2VYZWEyRC9qZy85WnhFRHFFb0FxR3ZaNkw5TUJxQVNBYUNXOWFQL01obUE0cndKVEJWbHAzK05Hd1RzQUNpczlxUzJGWUJTN0FBb3FjRjV1cTBBbENJQUZOTnNOR3NBRkNFQWxORjRLR3NBckNjQUZOQmxIR3NBckhUMi9MazNnVm5sdGMvZTczanZuNy9WODk1aDArd0FBRUlKQUt2MFBmMGZZUUd3WFFMQWNvTU0zMEdXQVpzenV4NFlPK0JwREF2WUFiRFE2eU9kZHcrMUdOZ0tBUUFJZGZiVDg1ZDZyNEh0ZWYyelAvZGV3bFA4ODYwLzlWNENiSWtkQUVBb0FRQUlKUUFBb1FTQWs0MzVCc0EwOE1KZ1RBSUFFRW9BQUVJSkFFQW9BUUFJSlFBQW9RUUFJSlFBQUlRU0FJQlFBZ0FRYXU2OUFBanl6Y2ZYai96dGk3Ly9ydGxLWUJJQXFPMzQwSC9XdnhRREdoQUFxT1hxby85Wi8xY0dxRW9Bb0x3MW8vK0h0eU1EVk9KTllDaXMxUFN2ZDROd3dRNEFpcWszcVcwRnFNRU9BTXBvY0o1dUswQlo4M1E0OUY0RGxOUHArZnpOL1o4M3VxT1ByNy80dS8rMHVTOTJ6dzRBMW1vMi9idmNIVHNtQUxCS2wzR3NBUlFoQUxCY3gwR3NBYXduQUFDaEJBQVc2bjRPM24wQmJKMEF3QktERE45QmxzRkdDUUJBS0FHQWt3MTEzajNVWXRnV0FRQUlKUUJ3bWdIUHVBZGNFcHNnQUFDaFpyOEV4SjdFUHA5akQ1dzE3QUFBUWdrQW5PRFJxSysyRDdzd1JpWUFBS0VFQUNDVUFBQ0VFZ0NBVUM0SzM4Znh0K3hlY00wL29ENEJhT2ZxbjlPNC9DL0ZBS2hFQUZwWTh4RzlpLzhyQTBCeHM2OFFWdlhvL28xQ3QzT1JnVytMM05xdUpUK2ZrNCtkSmJ3SlhGR3A2Vi92Qm9Ga1hnS3FvdDZrdnJobFd3RmdQVHVBOGhxY3A5c0tBT3NKUUdITlJyTUdBQ3NKUUVtTmg3SUdBR3NJUURGZHhyRUdBSXZOUGpsV3hLTlBiblM3Ni9zM1huajcyMTczUHB6azUzUHlzYk9JSFFCQUtBRW9vT1BwL3lBTEFMWklBTllhWlBnT3NneGdRd1FBSUpRQXJETFVlZmRRaXdIR0p3QUFvUVJndVFIUHVBZGNFakFzQVFBSUpRQUFvZndjTk5EQzdidGZIUG5iais3OHV0bEtlRUlBRmhyMjFmWkhuL2hsQ0VaeGZPZy82MStLUVRNQ0FKUjM5ZEgvclA4ckF3MElBRkRTbXRIL3c5dVJnYXBjRkg2WGtoOVR4OTdUN2J0ZmxyN0JMejY2ODZ1eXQ4a1RkZ0JBQWNWSC8vL2RzZ3pVNEdPZ3dGcjFwbi9MdXdna0FNQXF6VWF6QmhRbkFNQnlqWWV5QnBRbEFNQkNYY2F4QmhRMDkvL2NBS1VsUDZhT3ZabDMrZzNpMjNlLy9JdjNoRXV3QXdBSUpRREF5VHFlL2creWdIMFFBT0EwZ3d6ZlFaYXhhUUlBRUVvQWdCTU1kZDQ5MUdLMlNBQUFRZ2tBY0ZVRG5uRVB1S1FObWFNL09MMVh5WStwWXc4VWUrQ3IyUUVBaEJJQWdGQUNBRnpKT3g4TSttcjdzQXNibndBQWhCSUFnRkFDQUJES1JlRjNLZmt4ZGV5WmtvOTlPVHNBZ0ZBQ0FCQktBQUJDQ1FCQUtBRUFDQ1VBQUtFRUFDQ1VBQUNFRWdDQVVBSUFFRW9BQUVJSkFFQW9BUUFJSlFBQW9RUUFJSlFBQUlRU0FJQlFBZ0FRU2dBQVFna0FRQ2dCQUFnMUh3NkgzbXVnc09USDFMRm5TajcyTmV3QUFFSUpBRUFvQVFBSUpRQUFvUVFBSUpRQUFJUVNBSUJRQWdBUVNnQUFRZ2tBUUNnQkFBZ2xBQUNoQkFBZ2xBQUFoQklBZ0ZBQ0FCQktBQUJDQ1FCQUtBRUFDQ1VBQUtIbWFYSXg1ZjFKZmt3ZGU2YmtZMS9PRGdBZ2xBQUFoQklBZ0ZBQ0FCQktBQUJDQ1FCQXFObW5wM1lvK1RGMTdKbVNqMzBGT3dDQVVBSUFFRW9BQUVJSkFFQW9BUUFJSlFBQW9RUUFJTlRzNDdQN2sveVlPdlpNeWNlK2hoMEFRQ2dCQUFnbEFBQ2hCQUFnbEFBQWhISlIrRjFLZmt3ZGU2YmtZMS9PRGdBZ2xBQUFoQklBNEVydS9lSFYza3Q0dW1FWE5qNEJBQWdsQUFDaEJBQWdsQUFBVnpYZ3ErMERMbWxEQkFBZ2xBQUFKeGpxakh1b3hXeVJBQUNFRWdEZ05JT2Nkdyt5akUwVEFPQmszWWR2OXdYc2d3QUFoSnI5aU40T0pUK21qcjJWZSsrOSt1NkgvMnA2bDVmdXVzdjk3bzhkQUxCUWwwRnMraGNrQU1CeWpjZXg2VitXQUFDck5Cdktwbjl4QWdDczFXQTBtLzQxekwwWEFPekJ4WUN1OGJhdzBWK1BIUUJRVFBGaGJmcFhaUWNBbEZScUsyRDBOekJuZjNCNnI1SWZVOGMraEh2dnZUSk4wN3NmL252eC82VUJPNENGcnQ5NitOMWZYK3E5aXFlNGZ1dGg3eVhBOXk2UDh1TXhNUFM3RUFDZ0JTTitRTjRFQmdnbEFBQ2hCR0M1QVY5dEgzQkp3TEFFQUNDVUFLd3kxQm4zVUlzQnhpY0FBS0htZ2I0NnNrM250eDQrSHVBTEFlZE8vNmRwR3VxclVNMGxIenZMMkFFVTBIMzRkbDhBc0VVQ0FCQktBTXJvZUE3dTlCOVlSZ0NLNlRLSVRYOWdNUUVvcWZFNE52MkJOUVNnc0daRDJmUUhWaEtBOGhxTVp0TWZXTS9QUVZkeE1hQnJmRC9BNkFkS3NRT29xUGl3TnYyQmd1d0E2aXExRlRENmdlSUVvSVUxR1RENmdVcm02ZUFYUkJvNXYvbjFrejgvL3ZUbEsvNUxUcFA4ZkU0K2RoYXhBK2pEaUFlNjh5WXdRQ2dCQUFnbEFBQ2hCQUFnbEFEQUNZWjk5MzdZaFRFeUFRQUlKUUFBb1FRQUlKUUF3R2tHZkxWOXdDV3hDUUlBRUVvQTRHUkRuWEVQdFJpMlJRQUFRZ2tBTERISWVmY2d5MkNqQkFBVzZqNTh1eStBclJNQWdGQUNBTXQxUEFkMytzOTZBZ0NyZEJuRXBqOUZDQUNzMVhnY20vNlVJZ0JRUUxPaGJQcFQwRHhOTGlUTm5uUjdQcC9mL09yeHA3K3NmUmRWYjU4MExnb1B4VndNNkJvWk1QcXB3VXRBVUZqeFlXMzZVOG5zQlNEMlpKRG44N1diWDAzVDlOL1ZXNEZyUmo4MWVRa0lhbG1UQWFPZkJnUUE2cm84eW8vSHdOQ25NUUdBZG94NGhqS1A4cUlwRk9INURGZm1VMEFBb1FRQUlKUUFBSVFTQUlCUUFnQVFTZ0FBUWdrQVFDZ0JBQWdsQUp6c3dadDNlaS9oNllaZEdJeEpBQUJDQ1FCQUtBRUFDQ1VBTERIZ3ErMERMZ2tHSndBQW9jNmUrOG5QZXErQnJYcmo3eC8wWHNMM0hyejV4OTVMZ08yeEF3QUlKUUFzTjhoNTl5RExnTTBSQUZicFBueTdMd0MyU3dBQVFna0FhM1U4QjNmNkQyc0lBQVYwR2NTbVA2d2tBSlRSZUJ5Yi9yQ2VBRkJNczZGcytrTVJBa0JKRFVhejZRK2wrQ1l3VmRUNGtyRFJEMlhaQVZCRjhXRnQra054ZGdEVXRYNHJZUFJESlFKQUM4c3lZUFJEVldmUC9WZ0FhT3FOZnh5THdZUGZHUHJRaUFBQWhQSW1NRUFvQVFBSU5SOTZyd0NBTHV3QUFFSUpBRUNvZVpxOENBU1F5QTRBSUpRQUFJUVNBSUJRQWdBUVNnQUFRZ2tBUUNnQkFBZ2xBQUNoQkFBZ2xBQUFoQklBZ0ZBQ0FCQktBQUJDQ1FCQUtBRUFDQ1VBQUtFRUFDQ1VBQUNFRWdDQVVBSUFFR3FlRGk0S0Q1RElEZ0FnbEFBQWhCSUFnRkFDQUJCS0FBQkNDUUJBS0FFQUNDVUFBS0VFQUNDVUFBQ0VFZ0NBVUxOZkFnTElaQWNBRUVvQUFFSUpBRUFvQVFBSUpRQUFvUVFBSUpRQUFJUVNBSUJRQWdBUWFwNG0zd1VHU0dRSEFCQktBQUJDQ1FCQUtBRUFDQ1VBQUtFRUFDRFU3Rk9nQUpuc0FBQkNDUUJBS0FFQUNDVUFBS0VFQUNDVUFBQ0VFZ0NBVUFJQUVFb0FBRUlKQUVBb0FRQUlKUUFBb1FRQUlKU0x3Z09Fc2dNQUNDVUFBS0VFQUNDVUFBQ0VFZ0NBVUxQUEFBRmtzZ01BQ0NVQUFLRUVBQ0NVQUFDRUVnQ0FVQUlBRUVvQUFFTE5mZ3dVSUpNZEFFQW9BUUFJSlFBQW9RUUFJSlFBQUlRU0FJQlFMZ29QRU1vT0FDQ1VBQUNFRWdDQVVBSUFFRW9BQUVJSkFFQW9BUUFJSlFBQW9RUUFJSlFBQUlRU0FJQlFBZ0FRU2dBQVFna0FRQ2dCQUFnbEFBQ2hCQUFnbEFBQWhCSUFnRkFDQUJEcWY4dytJUHlTK1lvWUFBQUFBRWxGVGtTdVFtQ0MiLCAic2l6ZXMiOiAiNTEyeDUxMiIsICJ0eXBlIjogImltYWdlL3BuZyJ9XX0=">
+<title>Track It — Jun's Annotation Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1116;
+    --card:#161B23;
+    --card-2:#1C232E;
+    --line:#28303D;
+    --text:#E8ECF2;
+    --muted:#8B96A5;
+    --gold:#F5C044;
+    --gold-dim:rgba(245,192,68,.14);
+    --pass:#4ED6A7;
+    --pass-dim:rgba(78,214,167,.14);
+    --pend:#7FA6F0;
+    --pend-dim:rgba(127,166,240,.14);
+    --fail:#F07A7A;
+    --fail-dim:rgba(240,122,122,.13);
+    --ret:#D79BF0;
+    --ret-dim:rgba(215,155,240,.13);
+    --radius:14px;
+    --mono:'IBM Plex Mono',ui-monospace,monospace;
+    --sans:'Space Grotesk',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  body{max-width:520px;margin:0 auto;padding:18px 16px 40px}
+
+  header{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .eq{display:flex;align-items:flex-end;gap:2.5px;height:22px}
+  .eq span{width:4px;border-radius:2px;background:var(--gold);animation:eq 1.1s ease-in-out infinite}
+  .eq span:nth-child(2){animation-delay:.15s;background:var(--pass)}
+  .eq span:nth-child(3){animation-delay:.3s}
+  .eq span:nth-child(4){animation-delay:.45s;background:var(--pend)}
+  @keyframes eq{0%,100%{height:30%}50%{height:100%}}
+  @media (prefers-reduced-motion:reduce){.eq span{animation:none;height:70%}}
+  h1{font-size:19px;font-weight:700;letter-spacing:-.01em}
+  header small{display:block;color:var(--muted);font-size:12px;font-weight:400}
+  .rate-btn{margin-left:auto;background:var(--card);border:1px solid var(--line);color:var(--gold);
+    font-family:var(--mono);font-size:12px;padding:7px 11px;border-radius:99px;cursor:pointer}
+  .prof-btn{margin-left:auto;background:var(--card);border:1px solid var(--line);color:var(--muted);
+    width:34px;height:34px;border-radius:99px;cursor:pointer;font-size:16px;line-height:1}
+  .prof-btn+.rate-btn{margin-left:8px}
+  .prof-btn:active{transform:scale(.92)}
+
+  /* lock screen */
+  .lock{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column;
+    align-items:center;justify-content:center;padding:24px}
+  .lock.show{display:flex}
+  .lock .eq{margin-bottom:20px}
+  .lock h2{font-size:18px;font-weight:700;margin-bottom:4px;text-align:center}
+  .lock p{font-size:13px;color:var(--muted);margin-bottom:22px;text-align:center;min-height:18px}
+  .dots{display:flex;gap:14px;margin-bottom:26px}
+  .dots .d{width:14px;height:14px;border-radius:50%;border:2px solid var(--line);transition:.15s}
+  .dots .d.on{background:var(--gold);border-color:var(--gold)}
+  .dots.err .d{border-color:var(--fail);animation:shake .4s}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;width:100%;max-width:280px}
+  .pad button{aspect-ratio:1;background:var(--card);border:1px solid var(--line);color:var(--text);
+    border-radius:50%;font-size:24px;font-family:var(--mono);cursor:pointer}
+  .pad button:active{background:var(--card-2)}
+  .pad button.blank{background:none;border:none;cursor:default}
+  .pad button.act{font-size:13px;color:var(--muted);font-family:var(--sans)}
+  .lock .switch{margin-top:20px;background:none;border:none;color:var(--muted);font-size:13px;
+    cursor:pointer;text-decoration:underline dotted;font-family:var(--sans)}
+
+  /* profile chooser */
+  .profList{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px}
+  .profList button{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);
+    border-radius:12px;padding:13px 14px;cursor:pointer;font-family:var(--sans);text-align:left;color:var(--text)}
+  .profList button:active{background:var(--card)}
+  .profList .pav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-weight:700;font-size:15px;flex-shrink:0;color:#0E1116}
+  .profList .pinfo{flex:1;min-width:0}
+  .profList .pinfo b{font-size:14.5px;font-weight:600}
+  .profList .pinfo small{display:block;font-size:11px;color:var(--muted)}
+  .profList .plock{font-size:13px;color:var(--muted)}
+  .profList .add{color:var(--gold);justify-content:center;font-weight:600;border-style:dashed}
+
+  .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+
+  /* hero */
+  .hero{background:linear-gradient(150deg,var(--card-2),var(--card));border:1px solid var(--line);
+    border-radius:var(--radius);padding:20px 18px 18px;margin-bottom:12px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;
+    background:radial-gradient(circle,var(--gold-dim),transparent 70%);pointer-events:none}
+  .hero .amt{font-family:var(--mono);font-size:44px;font-weight:600;color:var(--gold);letter-spacing:-.02em;
+    margin:6px 0 2px;font-variant-numeric:tabular-nums}
+  .hero .php{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--pass);
+    margin-bottom:4px;font-variant-numeric:tabular-nums;cursor:pointer;position:relative;z-index:1;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .hero .php small{font-size:10px;color:var(--muted);font-family:var(--sans);letter-spacing:.02em}
+  .refresh{background:var(--card);border:1px solid var(--line);color:var(--pass);border-radius:99px;
+    width:26px;height:26px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;
+    justify-content:center;flex-shrink:0;line-height:1}
+  .refresh:active{transform:scale(.92)}
+  .refresh.spin{animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .hero .sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .hero .sub b{color:var(--pend);font-weight:600}
+  .stat .p{font-family:var(--mono);font-size:11.5px;color:var(--pass);margin-top:2px;font-variant-numeric:tabular-nums}
+
+  .goal{position:relative;z-index:1;margin-bottom:14px}
+  .goal .bar{height:9px;background:rgba(0,0,0,.35);border-radius:99px;overflow:hidden}
+  .goal .fill{height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#F0713A,var(--gold));transition:width .4s ease}
+  .goal .fill.done{background:linear-gradient(90deg,var(--pass),#8BE8C8)}
+  .goal .cap{display:flex;justify-content:space-between;margin-top:7px;font-size:12px;color:var(--muted)}
+  .goal .cap button{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;
+    text-decoration:underline dotted;font-family:var(--sans);padding:0}
+  .goal .cap b{color:var(--text)}
+
+  .pendbox{background:rgba(0,0,0,.22);border:1px solid var(--line);
+    border-radius:12px;padding:4px 12px;position:relative;z-index:1}
+  .qrow{display:flex;align-items:center;gap:10px;padding:7px 0}
+  .qrow+.qrow{border-top:1px solid var(--line)}
+  .qrow .lbl{flex:1;font-size:12.5px;color:var(--text);line-height:1.3}
+  .qrow .lbl span{display:block;color:var(--muted);font-size:10.5px}
+  .step{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:rgba(0,0,0,.25)}
+  .step button{background:transparent;border:none;color:var(--text);font-size:18px;width:38px;height:38px;cursor:pointer;font-family:var(--mono)}
+  .step button:active{background:var(--card-2)}
+  .step .val{width:46px;text-align:center;font-family:var(--mono);font-size:17px;font-weight:600;
+    background:transparent;border:none;font-variant-numeric:tabular-nums}
+  .step .val:focus{outline:none;color:var(--text)}
+  .qrow.q-pend .val{color:var(--pend)}
+  .qrow.q-fail .val{color:var(--fail)}
+  .qrow.q-ret .val{color:var(--ret)}
+  input[type=number]::-webkit-inner-spin-button{display:none}
+
+  /* quick log */
+  .songIn{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;
+    color:var(--text);padding:14px 15px;font-size:15px;font-family:var(--sans);margin-bottom:8px}
+  .songIn:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:transparent}
+  .songIn::placeholder{color:var(--muted)}
+  .logBtn{width:100%;background:var(--gold);color:#1A1400;border:none;border-radius:16px;
+    padding:18px;font-weight:700;font-size:17px;cursor:pointer;font-family:var(--sans);
+    margin-bottom:12px;box-shadow:0 4px 18px rgba(245,192,68,.22)}
+  .logBtn:active{transform:scale(.97)}
+  .sendBtn{width:100%;background:var(--card);border:1px solid var(--pass);color:var(--pass);border-radius:14px;
+    padding:13px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:var(--sans);margin-bottom:12px;display:none}
+  .sendBtn:active{transform:scale(.98)}
+  .hidden{display:none!important}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px}
+  .stat .v{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--text)}
+  .stat .n{font-size:11px;color:var(--muted);margin-top:2px}
+
+  .list-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
+  .list-head h2{font-size:14px;font-weight:600}
+  .list-head span{font-size:12px;color:var(--muted)}
+  .day-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em;
+    text-transform:uppercase;margin:14px 0 6px;display:flex;justify-content:space-between;align-items:center;
+    cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;
+    -webkit-user-select:none;user-select:none}
+  .day-label:active{background:var(--card-2)}
+  .day-label em{font-style:normal;color:var(--gold);display:flex;align-items:center;gap:8px}
+  .day-label .chev{display:inline-block;transition:transform .2s ease;font-size:10px;color:var(--muted)}
+  .day-label.open .chev{transform:rotate(180deg)}
+  .day-group{display:none}
+  .day-group.open{display:block}
+  .song{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
+    border-radius:12px;padding:11px 12px;margin-bottom:7px}
+  .song .idx{font-family:var(--mono);font-size:11px;color:var(--muted);width:20px;text-align:right;flex-shrink:0}
+  .song .mid{flex:1;min-width:0}
+  .song .title{font-size:14.5px;font-weight:500;word-break:break-word}
+  .song .time{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px}
+  .tag{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.05em;padding:5px 9px;border-radius:99px;flex-shrink:0;text-transform:uppercase}
+  .tag.qa{background:var(--pend-dim);color:var(--pend)}
+  .tag.ok{background:var(--pass-dim);color:var(--pass)}
+  .del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 2px;flex-shrink:0;opacity:.6}
+
+  .empty{text-align:center;color:var(--muted);font-size:13.5px;padding:32px 20px;background:var(--card);
+    border:1px dashed var(--line);border-radius:var(--radius);line-height:1.6}
+  .hint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--card-2);
+    border:1px solid var(--line);color:var(--pass);font-family:var(--mono);font-size:13px;padding:10px 18px;border-radius:99px;
+    opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;font-weight:600}
+  .toast.show{opacity:1}
+  .more{width:100%;background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:12px;
+    padding:11px;font-size:13px;cursor:pointer;font-family:var(--sans);margin-top:2px}
+
+  /* modal */
+  .overlay{position:fixed;inset:0;background:rgba(6,8,12,.72);display:none;align-items:center;
+    justify-content:center;z-index:50;padding:24px}
+  .overlay.show{display:flex}
+  .modal{background:var(--card-2);border:1px solid var(--line);border-radius:16px;padding:20px 18px;
+    width:100%;max-width:320px}
+  .modal h3{font-size:15px;font-weight:600;margin-bottom:4px}
+  .modal p{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.45}
+  .modal input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;
+    color:var(--text);padding:13px 14px;font-size:17px;font-family:var(--mono);margin-bottom:14px;
+    font-variant-numeric:tabular-nums}
+  .modal input:focus{outline:2px solid var(--gold);border-color:transparent}
+  .modal .btns{display:flex;gap:8px}
+  .modal .btns button{flex:1;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:600;
+    cursor:pointer;font-family:var(--sans)}
+  .modal .cancel{background:var(--card);color:var(--muted);border:1px solid var(--line)}
+  .modal .ok{background:var(--gold);color:#1A1400}
+  .modal .ok.danger{background:#F07A7A;color:#2A0808}
+  .modal textarea{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;
+    color:var(--text);padding:12px 13px;font-size:12px;font-family:var(--mono);margin-bottom:14px;
+    min-height:110px;resize:vertical;display:none;word-break:break-all}
+  .modal textarea:focus{outline:2px solid var(--gold);border-color:transparent}
+
+  /* team */
+  .team{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 14px 6px;margin-bottom:16px}
+  .team .th{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .team .th h2{font-size:14px;font-weight:600}
+  .team .th .impBtn{background:var(--pass-dim);border:1px solid rgba(78,214,167,.3);color:var(--pass);
+    border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+  .team .tsum{font-size:11.5px;color:var(--muted);margin-bottom:8px}
+  .team .tsum b{color:var(--gold);font-family:var(--mono)}
+  .team .tsum button{background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;
+    text-decoration:underline dotted;font-family:var(--sans);padding:0}
+  .trow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+  .trow .tname{font-size:14px;font-weight:600;min-width:0}
+  .trow .tname small{display:block;font-size:11px;color:var(--muted);font-weight:400;font-family:var(--mono)}
+  .trow .owe{margin-left:auto;text-align:right;flex-shrink:0}
+  .trow .owe b{font-family:var(--mono);font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;display:block}
+  .trow .owe span{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
+  .trow .payBtn{background:var(--pass-dim);border:1px solid rgba(78,214,167,.3);color:var(--pass);
+    border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);flex-shrink:0}
+  .trow .payBtn:disabled{opacity:.35;cursor:default}
+  .team .none{font-size:12.5px;color:var(--muted);padding:8px 0 10px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<div class="lock" id="lock">
+  <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <h2 id="lockTitle">Enter PIN</h2>
+  <p id="lockDesc"></p>
+  <div class="dots" id="lockDots"><span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span></div>
+  <div class="pad" id="lockPad">
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+    <button class="act" data-k="cancel">Cancel</button><button data-k="0">0</button><button class="act" data-k="del">⌫</button>
+  </div>
+  <button class="switch" id="lockSwitch">Switch profile</button>
+</div>
+
+<header>
+  <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <div>
+    <h1>Track It</h1>
+    <small id="subTitle">annotation log</small>
+  </div>
+  <button class="prof-btn" id="profBtn" aria-label="Switch profile">⚙</button>
+  <button class="rate-btn" id="rateBtn">$3.13/QA</button>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">Earned today</div>
+  <div class="amt" id="todayAmt">$0.00</div>
+  <div class="php" id="todayPhp" title="Tap to edit exchange rate"></div>
+  <div class="sub" id="todaySub"></div>
+  <div class="goal">
+    <div class="bar"><div class="fill" id="goalFill"></div></div>
+    <div class="cap">
+      <span id="goalText"><b>0</b> / 24 daily target</span>
+      <button id="goalBtn">edit target</button>
+    </div>
+  </div>
+  <div class="pendbox">
+    <div class="qrow q-pend">
+      <div class="lbl">Pending QA</div>
+      <div class="step">
+        <button data-dec="pending" aria-label="Decrease">−</button>
+        <input class="val" id="pendIn" data-key="pending" type="number" inputmode="numeric" min="0" value="0">
+        <button data-inc="pending" aria-label="Increase">+</button>
+      </div>
+    </div>
+    <div class="qrow q-fail">
+      <div class="lbl">Failed QA
+        <span>All time — these never pay</span></div>
+      <div class="step">
+        <button data-dec="failed" aria-label="Decrease">−</button>
+        <input class="val" id="failIn" data-key="failed" type="number" inputmode="numeric" min="0" value="0">
+        <button data-inc="failed" aria-label="Increase">+</button>
+      </div>
+    </div>
+    <div class="qrow q-ret">
+      <div class="lbl">Returned to you
+        <span>Current — unpaid until resubmitted</span></div>
+      <div class="step">
+        <button data-dec="returned" aria-label="Decrease">−</button>
+        <input class="val" id="retIn" data-key="returned" type="number" inputmode="numeric" min="0" value="0">
+        <button data-inc="returned" aria-label="Increase">+</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
+<button class="logBtn" id="addBtn">+ Log a submission</button>
+<button class="sendBtn" id="sendBtn">📤 Send my counts to Jun</button>
+
+<div class="grid">
+  <div class="stat"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div><div class="n" id="weekN"></div></div>
+  <div class="stat"><div class="eyebrow">Month</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="n" id="monthN"></div></div>
+  <div class="stat"><div class="eyebrow">All time</div><div class="v" id="allAmt">$0.00</div><div class="p" id="allPhp"></div><div class="n" id="allN"></div></div>
+</div>
+
+<div class="team hidden" id="teamCard">
+  <div class="th">
+    <h2>Team</h2>
+    <div style="display:flex;gap:6px">
+      <button class="impBtn" id="syncBtn">🔄 Sync</button>
+      <button class="impBtn" id="impBtn">📥 Import</button>
+    </div>
+  </div>
+  <div class="tsum" id="teamSum"></div>
+  <div id="teamRows"></div>
+</div>
+
+<div class="list-head">
+  <h2>Work log</h2>
+  <span id="totalCount"></span>
+</div>
+<div id="songList"></div>
+
+<p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="mTitle"></h3>
+    <p id="mDesc"></p>
+    <input id="mInput" type="number" inputmode="decimal" step="any">
+    <textarea id="mText"></textarea>
+    <div id="mCustom"></div>
+    <div class="btns" id="mBtns">
+      <button class="cancel" id="mCancel">Cancel</button>
+      <button class="ok" id="mOk">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY='jun-beatpulse-tracker-v8';       // legacy single-profile (migrated)
+const PKEY='trackit-profiles-v1';           // profile registry + per-profile data
+const defaultState=()=>({role:null,name:'',rate:0,tcrate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,
+  teamCode:'',team:{reports:{},paid:{}},songs:[]});
+let state=defaultState();
+// registry: { profiles:[{id,name,role,pin,avatar}], data:{ [id]: <state> }, active:id }
+let reg={profiles:[],data:{},active:null};
+let showAll=false;
+
+// Jun's July baseline — 66 passed + 7 pending = 73 submitted (applied on lead setup)
+function seedSongs(){
+  const counts=[5,4,5,4,5,4,5,5,4,5,4,5,4,5,4,5]; // Jul 1–16, totals 73
+  const songs=[];
+  counts.forEach((n,di)=>{
+    const day=di+1;
+    const date='2026-07-'+String(day).padStart(2,'0');
+    for(let i=0;i<n;i++){
+      const ts=new Date(2026,6,day,9+i,(i*17)%60).getTime();
+      songs.push({id:'seed-'+day+'-'+i,title:'Track #'+(i+1),date,ts});
+    }
+  });
+  return songs;
+}
+
+const $=id=>document.getElementById(id);
+const money=n=>'$'+n.toFixed(2);
+const peso=n=>'₱'+n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+
+// storage adapter: Claude artifact storage → browser localStorage → memory only
+const store={
+  async get(k){
+    if(window.storage&&window.storage.get){
+      try{const r=await window.storage.get(k);if(r&&r.value)return r.value;}catch(e){/* key missing or unavailable */}
+    }
+    try{return localStorage.getItem(k);}catch(e){return null;}
+  },
+  async set(k,v){
+    let ok=false;
+    if(window.storage&&window.storage.set){
+      try{const r=await window.storage.set(k,v);if(r)ok=true;}catch(e){/* fall through */}
+    }
+    try{localStorage.setItem(k,v);ok=true;}catch(e){/* blocked */}
+    return ok;
+  }
+};
+
+const AVATARS=['#F5C044','#4ED6A7','#7FA6F0','#D79BF0','#F0A85A'];
+function normProfile(p){
+  if(!p.goal)p.goal=24;if(!p.tcrate)p.tcrate=2.00;
+  if(!('pending'in p))p.pending=0;if(!('failed'in p))p.failed=0;if(!('returned'in p))p.returned=0;
+  if(!p.php)p.php=56.50;if(!p.team)p.team={reports:{},paid:{}};if(!('teamCode'in p))p.teamCode='';
+  if(!('role'in p))p.role='member';if(!('name'in p))p.name='';
+  if(!p.rate)p.rate=p.role==='lead'?3.13:2.00;
+  return p;
+}
+
+async function loadReg(){
+  // try new registry
+  try{const raw=await store.get(PKEY);if(raw){const r=JSON.parse(raw);
+    if(r&&Array.isArray(r.profiles)){reg=r;return true;}}}catch(e){}
+  // migrate a legacy single profile if present
+  try{const raw=await store.get(KEY);if(raw){const p=JSON.parse(raw);
+    if(p&&Array.isArray(p.songs)&&p.role){
+      normProfile(p);
+      const id='p'+Date.now();
+      reg={profiles:[{id,name:p.name||'Jun',role:p.role,pin:'',avatar:AVATARS[0]}],data:{[id]:p},active:id};
+      await saveReg();
+      return true;
+    }}}catch(e){}
+  return false;
+}
+let regTimer=null;
+async function saveReg(){
+  if(reg.active){reg.data[reg.active]=state;} // snapshot active state
+  clearTimeout(regTimer);
+  return new Promise(res=>{regTimer=setTimeout(async()=>{res(await store.set(PKEY,JSON.stringify(reg)));},250);});
+}
+function save(){saveReg();}
+
+function activeProfile(){return reg.profiles.find(p=>p.id===reg.active);}
+
+async function load(){
+  const found=await loadReg();
+  if(!found||!reg.profiles.length){
+    render();
+    fetchRate();
+    setTimeout(()=>createProfile(true),300);
+    return;
+  }
+  // pick active (or first) and require PIN if set
+  const start=activeProfile()||reg.profiles[0];
+  reg.active=start.id;
+  openProfile(start,true);
+}
+
+// load a profile's data into `state`, gated by PIN
+function openProfile(prof,initial){
+  const enter=()=>{
+    reg.active=prof.id;
+    state=normProfile(reg.data[prof.id]||defaultState());
+    // the profile record is authoritative for name & role
+    state.name=prof.name||state.name;
+    state.role=prof.role||state.role;
+    hideLock();
+    render();
+    fetchRate();
+    if(state.role!=='member'&&state.teamCode)fetchTeam();
+    saveReg();
+  };
+  if(prof.pin){
+    promptPin('Enter PIN',prof.name+"'s tracker",prof.pin,enter,initial);
+  }else{
+    enter();
+  }
+}
+
+function genTeamCode(){
+  const chars='abcdefghjkmnpqrstuvwxyz23456789';
+  let c='team-';
+  for(let i=0;i<6;i++)c+=chars[Math.floor(Math.random()*chars.length)];
+  return c;
+}
+
+async function sendToJun(){
+  const days={};
+  state.songs.forEach(s=>{days[s.date]=(days[s.date]||0)+1;});
+  if(state.teamCode){
+    try{
+      const res=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({team:state.teamCode,name:state.name||'Member',days})});
+      if(res.ok){toast('Sent to Jun \u2713');return;}
+    }catch(e){/* offline or preview — fall back to code */}
+  }
+  const code='TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days}))));
+  showCode(code,'Couldn\'t reach the server','Copy this code and paste it to Jun in chat instead — his app can import it.');
+}
+
+let teamSyncing=false;
+async function fetchTeam(notify){
+  if(!state.teamCode||teamSyncing)return;
+  teamSyncing=true;
+  try{
+    const res=await fetch('/api/team?team='+encodeURIComponent(state.teamCode));
+    if(res.ok){
+      const data=await res.json();
+      if(data&&data.reports){
+        let changed=false;
+        for(const[name,days]of Object.entries(data.reports)){
+          state.team.reports[name]=days;
+          if(!(name in state.team.paid))state.team.paid[name]=0;
+          changed=true;
+        }
+        if(changed){save();render();}
+        if(notify)toast('Team synced \u2713');
+      }
+    }else if(notify)toast('Sync failed — try again','var(--muted)');
+  }catch(e){if(notify)toast('Offline — using last synced counts','var(--muted)');}
+  teamSyncing=false;
+}
+
+// ---- profile creation ----
+function createProfile(first){
+  askChoice(first?'Welcome to Track It':'Add a profile','Set up a tracker on this phone. Each profile is separate and can be PIN-locked.',
+    'I\'m Jun (lead)','I\'m a team member',
+    ()=>{ // lead
+      if(reg.profiles.some(p=>p.role==='lead')){toast('A lead profile already exists','var(--muted)');return;}
+      askNum('Your pay per passed QA','Enter your rate in USD. It\'s never shown to anyone else.','',r=>{
+        const st=defaultState();st.role='lead';st.name='Jun';st.rate=r;
+        st.songs=seedSongs();st.pending=7;st.teamCode=genTeamCode();
+        finishNewProfile('Jun','lead',st,()=>{
+          showCode(st.teamCode,'Your team code','Share this once with each colleague — they enter it during setup and their counts sync to your Team card automatically.');
+        });
+      });
+    },
+    ()=>{ // member
+      askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.','',v=>{
+        const nm=(v.trim()||'Member').slice(0,20);
+        const st=defaultState();st.role='member';st.name=nm;st.rate=2.00;
+        askText('Team code','Enter the team code Jun shared with you. Links your Send button to his dashboard.','',c=>{
+          st.teamCode=c.trim().toLowerCase();
+          finishNewProfile(nm,'member',st,()=>toast('Welcome, '+nm+'!'));
+        });
+      });
+    });
+}
+
+function finishNewProfile(name,role,st,done){
+  const id='p'+Date.now()+Math.floor(Math.random()*99);
+  const avatar=AVATARS[reg.profiles.length%AVATARS.length];
+  const prof={id,name,role,pin:'',avatar};
+  reg.profiles.push(prof);reg.data[id]=st;reg.active=id;state=st;
+  saveReg();hideLock();render();
+  if(done)done();
+  // offer to set a PIN right away
+  setTimeout(()=>askChoice('Add a PIN?','Protect '+name+'\'s tracker with a 4-digit PIN. You can change it later from the ⚙ menu.',
+    'Set a PIN','Skip for now',
+    ()=>setNewPin(prof),
+    ()=>{}),350);
+}
+
+// ---- PIN pad ----
+let pinBuf='',pinState=null; // pinState:{expect,onOk,initial,setPhase,firstPin}
+function promptPin(title,desc,expect,onOk,initial){
+  pinBuf='';pinState={mode:'check',expect,onOk,initial};
+  $('lockTitle').textContent=title;$('lockDesc').textContent=desc||'';
+  $('lockSwitch').style.display=reg.profiles.length>1?'block':'none';
+  showLock();paintDots();
+}
+function setNewPin(prof){
+  pinBuf='';pinState={mode:'set',phase:1,first:'',prof};
+  $('lockTitle').textContent='Set a PIN';
+  $('lockDesc').textContent='Choose a 4-digit PIN for '+prof.name;
+  $('lockSwitch').style.display='none';
+  showLock();paintDots();
+}
+function paintDots(err){
+  const dots=$('lockDots');
+  dots.classList.toggle('err',!!err);
+  [...dots.children].forEach((d,i)=>d.classList.toggle('on',i<pinBuf.length));
+}
+function pinKey(k){
+  if(k==='cancel'){
+    if(pinState&&pinState.mode==='set'&&pinState.fromMenu){hideLock();openMenu();return;}
+    if(pinState&&pinState.mode==='check'&&!pinState.initial){hideLock();return;}
+    // initial check with nowhere to go → show switcher if multiple, else stay
+    if(reg.profiles.length>1){showSwitcher();}
+    return;
+  }
+  if(k==='del'){pinBuf=pinBuf.slice(0,-1);paintDots();return;}
+  if(pinBuf.length>=4)return;
+  pinBuf+=k;paintDots();
+  if(pinBuf.length===4)setTimeout(submitPin,120);
+}
+function submitPin(){
+  if(pinState.mode==='check'){
+    if(pinBuf===pinState.expect){const cb=pinState.onOk;pinState=null;cb();}
+    else{paintDots(true);pinBuf='';setTimeout(()=>paintDots(),400);}
+    return;
+  }
+  // set mode
+  if(pinState.phase===1){
+    pinState.first=pinBuf;pinState.phase=2;pinBuf='';
+    $('lockTitle').textContent='Confirm PIN';$('lockDesc').textContent='Enter it again';
+    paintDots();
+  }else{
+    if(pinBuf===pinState.first){
+      pinState.prof.pin=pinBuf;saveReg();
+      const back=pinState.fromMenu;pinState=null;hideLock();
+      toast('PIN set 🔒');
+      if(back)render();
+    }else{
+      paintDots(true);pinBuf='';pinState.phase=1;pinState.first='';
+      $('lockTitle').textContent='Didn\'t match — set a PIN';$('lockDesc').textContent='Choose a 4-digit PIN';
+      setTimeout(()=>paintDots(),400);
+    }
+  }
+}
+function showLock(){$('lock').classList.add('show');}
+function hideLock(){$('lock').classList.remove('show');}
+$('lockPad').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(b)pinKey(b.dataset.k);});
+$('lockSwitch').addEventListener('click',showSwitcher);
+
+// ---- profile switcher / menu ----
+function showSwitcher(){
+  hideLock();openMenu();
+}
+function openMenu(){
+  let html='<div class="profList">';
+  reg.profiles.forEach(p=>{
+    const initial=(p.name||'?').charAt(0).toUpperCase();
+    html+='<button data-open="'+p.id+'"><span class="pav" style="background:'+p.avatar+'">'+esc(initial)+'</span>'
+      +'<span class="pinfo"><b>'+esc(p.name)+'</b><small>'+(p.role==='lead'?'Lead':'Team member')+(p.id===reg.active?' · current':'')+'</small></span>'
+      +'<span class="plock">'+(p.pin?'🔒':'🔓')+'</span></button>';
+  });
+  html+='<button class="add" data-open="__new">+ Add profile</button></div>';
+  openHtmlModal('Profiles','Tap a profile to open it. Manage the current one below.',html,[
+    {label:'Set/Change PIN',cb:()=>{const p=activeProfile();if(p){pinState={};setNewPinFromMenu(p);}}},
+    {label:'Rename current',cb:()=>{const p=activeProfile();if(p)askText('Rename profile','',p.name,v=>{if(v.trim()){p.name=v.trim().slice(0,20);if(state)state.name=p.name;saveReg();render();}});}},
+  ]);
+  document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{
+    const id=b.dataset.open;closeModal();
+    if(id==='__new'){createProfile(false);return;}
+    const prof=reg.profiles.find(x=>x.id===id);
+    if(prof)openProfile(prof,false);
+  }));
+}
+function setNewPinFromMenu(prof){
+  closeModal();pinBuf='';pinState={mode:'set',phase:1,first:'',prof,fromMenu:true};
+  $('lockTitle').textContent=prof.pin?'Change PIN':'Set a PIN';
+  $('lockDesc').textContent='Choose a 4-digit PIN for '+prof.name;
+  $('lockSwitch').style.display='none';
+  showLock();paintDots();
+}
+
+
+let rateLive=false;
+async function fetchRate(notify){
+  const btn=document.getElementById('rateRefresh');
+  if(btn)btn.classList.add('spin');
+  let ok=false;
+  try{
+    const res=await fetch('https://open.er-api.com/v6/latest/USD');
+    const j=await res.json();
+    if(j&&j.rates&&j.rates.PHP>0){
+      state.php=Math.round(j.rates.PHP*100)/100;
+      rateLive=true;ok=true;
+      save();render();
+    }
+  }catch(e){
+    try{
+      const res=await fetch('https://api.frankfurter.app/latest?from=USD&to=PHP');
+      const j=await res.json();
+      if(j&&j.rates&&j.rates.PHP>0){
+        state.php=Math.round(j.rates.PHP*100)/100;
+        rateLive=true;ok=true;
+        save();render();
+      }
+    }catch(e2){/* stay on saved rate */}
+  }
+  const btn2=document.getElementById('rateRefresh');
+  if(btn2)btn2.classList.remove('spin');
+  if(notify){
+    if(ok)toast('Rate updated · ₱'+state.php.toFixed(2)+'/$');
+    else toast('Couldn\'t fetch rate — offline? Using saved rate','var(--muted)');
+  }
+}
+let saveTimer=null,warnedSave=false;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(async()=>{
+    const ok=await store.set(KEY,JSON.stringify(state));
+    if(!ok&&!warnedSave){
+      warnedSave=true;
+      toast('Heads up: changes won\'t persist in this view','var(--muted)');
+    }
+  },300);
+}
+
+function weekStart(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x;} // Monday
+function dOf(s){return new Date(s+'T12:00:00');}
+
+function render(){
+  const t=todayStr(),now=new Date(),wk=weekStart(now),mo=new Date(now.getFullYear(),now.getMonth(),1);
+  let nToday=0,nWeek=0,nMonth=0;
+  state.songs.forEach(s=>{
+    const dt=dOf(s.date);
+    if(s.date===t)nToday++;
+    if(dt>=wk)nWeek++;
+    if(dt>=mo)nMonth++;
+  });
+  const nAll=state.songs.length;
+  const lead=state.role!=='member';
+  const unpaidN=lead?(state.pending+state.failed+state.returned):0;
+  const confirmedAll=Math.max(0,(nAll-unpaidN)*state.rate);
+
+  $('todayAmt').textContent=money(nToday*state.rate);
+  if(lead){
+    const pendVal=state.pending*state.rate;
+    $('todaySub').innerHTML=nToday+' logged today · <b>'+money(pendVal)+' ('+peso(pendVal*state.php)+')</b> waiting in QA overall';
+  }else{
+    $('todaySub').innerHTML='<b>'+nToday+'</b> track'+(nToday===1?'':'s')+' logged today';
+  }
+  $('todayPhp').innerHTML=peso(nToday*state.rate*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
+  $('weekAmt').textContent=money(nWeek*state.rate);$('weekPhp').textContent=peso(nWeek*state.rate*state.php);$('weekN').textContent=nWeek+' logged';
+  $('monthAmt').textContent=money(nMonth*state.rate);$('monthPhp').textContent=peso(nMonth*state.rate*state.php);$('monthN').textContent=nMonth+' logged';
+  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);
+  $('allN').textContent=lead?(state.pending+' pend · '+state.failed+' fail · '+state.returned+' ret deducted'):(nAll+' logged');
+  $('rateBtn').textContent=money(state.rate)+(lead?'/QA':'/track');
+  $('totalCount').textContent=nAll?nAll+' logged':'';
+  if(lead){$('pendIn').value=state.pending;$('failIn').value=state.failed;$('retIn').value=state.returned;}
+
+  const pct=Math.min(100,(nToday/state.goal)*100);
+  const fill=$('goalFill');fill.style.width=pct+'%';
+  fill.classList.toggle('done',nToday>=state.goal);
+  $('goalText').innerHTML=nToday>=state.goal
+    ?'<b style="color:var(--pass)">Target hit! '+nToday+' / '+state.goal+'</b>'
+    :'<b>'+nToday+'</b> / '+state.goal+' daily target — '+(state.goal-nToday)+' to go';
+
+  // role-aware sections
+  $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' annotation log';
+  document.querySelector('.pendbox').classList.toggle('hidden',!lead);
+  $('teamCard').classList.toggle('hidden',!lead);
+  $('sendBtn').style.display=lead?'none':'block';
+  if(lead)renderTeam();
+
+  renderSongs();
+}
+
+function renderTeam(){
+  const cut=Math.max(0,state.rate-state.tcrate);
+  const names=Object.keys(state.team.reports);
+  let totalN=0;
+  let rows='';
+  names.forEach(name=>{
+    const days=state.team.reports[name];
+    let n=0,today=0;
+    for(const[d,c]of Object.entries(days)){n+=c;if(d===todayStr())today=c;}
+    totalN+=n;
+    const owed=Math.max(0,n*state.tcrate-(state.team.paid[name]||0));
+    rows+='<div class="trow"><div class="tname">'+esc(name)
+      +'<small>'+n+' tracks'+(today?' · '+today+' today':'')+' · your cut '+money(n*cut)+'</small></div>'
+      +'<div class="owe"><b>'+money(owed)+'</b><span>'+peso(owed*state.php)+' owed</span></div>'
+      +'<button class="payBtn" data-pay="'+esc(name)+'"'+(owed<=0?' disabled':'')+'>Mark paid</button>'
+      +'</div>';
+  });
+  $('teamSum').innerHTML='Team code: <button id="codeBtn">'+esc(state.teamCode||'none — tap to create')+'</button>'
+    +(names.length?' · your cut: <b>'+money(totalN*cut)+'</b> · they earn <button id="tcrateBtn">'+money(state.tcrate)+'/track</button>':'');
+  $('teamRows').innerHTML=rows||'<div class="none">No team counts yet. When a colleague taps "Send my counts to Jun" in their app, paste their code here with Import.</div>';
+  const tb=$('tcrateBtn');
+  if(tb)tb.addEventListener('click',()=>{
+    askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
+      if(n>=state.rate){toast('Must be below your own rate','var(--muted)');return;}
+      state.tcrate=n;save();render();
+    });
+  });
+  const cb2=$('codeBtn');
+  if(cb2)cb2.addEventListener('click',()=>{
+    if(!state.teamCode){state.teamCode=genTeamCode();save();render();}
+    showCode(state.teamCode,'Your team code','Share this once with each colleague — they enter it during setup and their counts sync automatically.');
+  });
+}
+
+let openDays=null; // lazily initialized: today open, past days collapsed
+function renderSongs(){
+  const list=$('songList');
+  if(!state.songs.length){
+    list.innerHTML='<div class="empty">No tracks logged yet.<br>Every time you hit submit on Beatpulse Labs,<br>tap <b>+ Log a submission</b> — date and time are recorded automatically.</div>';
+    return;
+  }
+  if(!openDays)openDays=new Set([todayStr()]);
+  const byDate={};
+  state.songs.forEach(x=>{(byDate[x.date]=byDate[x.date]||[]).push(x);});
+  let dates=Object.keys(byDate).sort().reverse();
+  const limited=!showAll&&dates.length>10;
+  if(limited)dates=dates.slice(0,10);
+  let html='';
+  dates.forEach(d=>{
+    const rows=byDate[d].slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const isOpen=openDays.has(d);
+    const label=d===todayStr()?'Today':dOf(d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+rows.length+' track'+(rows.length===1?'':'s')+'</span><em>'+money(rows.length*state.rate)+'<span class="chev">▼</span></em></div>';
+    html+='<div class="day-group'+(isOpen?' open':'')+'">';
+    rows.forEach((x,i)=>{
+      const time=x.ts?new Date(x.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):dOf(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      html+='<div class="song"><span class="idx">'+String(rows.length-i).padStart(2,'0')+'</span>'
+        +'<div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+time+'</div>':'')+'</div>'
+        +'<button class="del" data-del="'+x.id+'" aria-label="Delete">✕</button></div>';
+    });
+    html+='</div>';
+  });
+  if(limited)html+='<button class="more" id="moreBtn">Show older days</button>';
+  list.innerHTML=html;
+  const mb=$('moreBtn');
+  if(mb)mb.addEventListener('click',()=>{showAll=true;renderSongs();});
+}
+
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
+function toast(msg,color){const el=$('toast');el.textContent=msg;el.style.color=color||'var(--pass)';
+  el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1600);}
+
+// in-app modal (browser prompt/confirm are blocked in sandboxed previews)
+let modalCb=null,cancelCb=null;
+function resetModal(){
+  $('mCustom').innerHTML='';$('mCustom').style.display='none';
+  $('mBtns').style.display='flex';
+  $('mInput').style.display='none';$('mText').style.display='none';
+  $('mOk').classList.remove('danger');
+}
+function askNum(title,desc,value,cb){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  const inp=$('mInput');
+  inp.type='number';inp.style.display='block';inp.value=value;
+  $('mOk').textContent='Save';
+  $('mCancel').textContent='Cancel';
+  modalCb=()=>{const n=parseFloat(inp.value);if(!isNaN(n)&&n>0)cb(n);};cancelCb=null;
+  $('overlay').classList.add('show');
+  setTimeout(()=>{inp.focus();inp.select();},50);
+}
+function askText(title,desc,value,cb){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  const inp=$('mInput');
+  inp.type='text';inp.style.display='block';inp.value=value;
+  $('mOk').textContent='Save';
+  $('mCancel').textContent='Cancel';
+  modalCb=()=>cb(inp.value);cancelCb=null;
+  $('overlay').classList.add('show');
+  setTimeout(()=>{inp.focus();inp.select();},50);
+}
+function askChoice(title,desc,okLabel,cancelLabel,okCb,cancelCbFn){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  $('mOk').textContent=okLabel;
+  $('mCancel').textContent=cancelLabel;
+  modalCb=okCb;cancelCb=cancelCbFn;
+  $('overlay').classList.add('show');
+}
+function askCode(title,desc,cb){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  const ta=$('mText');ta.style.display='block';ta.value='';ta.readOnly=false;
+  $('mOk').textContent='Import';
+  $('mCancel').textContent='Cancel';
+  modalCb=()=>cb(ta.value);cancelCb=null;
+  $('overlay').classList.add('show');
+  setTimeout(()=>ta.focus(),50);
+}
+function showCode(code,title,desc){
+  resetModal();
+  $('mTitle').textContent=title||'Your code for Jun';
+  $('mDesc').textContent=desc||'Copy this and paste it to Jun in chat. Resending later is fine — it just updates your counts.';
+  const ta=$('mText');ta.style.display='block';ta.value=code;ta.readOnly=true;
+  $('mOk').textContent='Copy code';
+  $('mCancel').textContent='Close';
+  modalCb=async()=>{
+    let copied=false;
+    try{await navigator.clipboard.writeText(code);copied=true;}catch(e){
+      try{ta.focus();ta.select();copied=document.execCommand('copy');}catch(e2){}
+    }
+    toast(copied?'Copied — paste it to Jun':'Select the code and copy manually');
+  };cancelCb=null;
+  $('overlay').classList.add('show');
+  setTimeout(()=>{ta.focus();ta.select();},50);
+}
+function askConfirm(title,desc,cb){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  $('mOk').textContent='Delete';$('mOk').classList.add('danger');
+  $('mCancel').textContent='Cancel';
+  modalCb=cb;cancelCb=null;
+  $('overlay').classList.add('show');
+}
+// custom HTML body + optional extra action buttons (each {label,cb}); always has a Close
+function openHtmlModal(title,desc,html,actions){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc||'';
+  const c=$('mCustom');c.style.display='block';c.innerHTML=html;
+  const btns=$('mBtns');btns.innerHTML='';
+  (actions||[]).forEach(a=>{
+    const b=document.createElement('button');b.className='cancel';b.textContent=a.label;
+    b.addEventListener('click',()=>{a.cb();});btns.appendChild(b);
+  });
+  const close=document.createElement('button');close.className='ok';close.textContent='Close';
+  close.addEventListener('click',closeModal);btns.appendChild(close);
+  modalCb=null;cancelCb=null;
+  $('overlay').classList.add('show');
+}
+function closeModal(){$('overlay').classList.remove('show');modalCb=null;cancelCb=null;
+  // restore standard buttons for next use
+  $('mBtns').innerHTML='<button class="cancel" id="mCancel">Cancel</button><button class="ok" id="mOk">Save</button>';
+  bindModalButtons();
+}
+function bindModalButtons(){
+  $('mCancel').addEventListener('click',()=>{const cb=cancelCb;closeModal();if(cb)cb();});
+  $('mOk').addEventListener('click',()=>{const cb=modalCb;closeModal();if(cb)cb();});
+}
+bindModalButtons();
+$('overlay').addEventListener('click',e=>{if(e.target.id==='overlay'&&!cancelCb)closeModal();});
+$('mInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('mOk'))$('mOk').click();});
+$('profBtn').addEventListener('click',openMenu);
+
+$('addBtn').addEventListener('click',()=>{
+  const nToday=state.songs.filter(s=>s.date===todayStr()).length;
+  const typed=$('songIn').value.trim();
+  const title=typed||('Track #'+(nToday+1));
+  state.songs.push({id:Date.now()+''+Math.floor(Math.random()*999),title,date:todayStr(),ts:Date.now()});
+  $('songIn').value='';
+  save();render();
+  toast('Logged · +'+money(state.rate));
+});
+$('songIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('addBtn').click();});
+
+$('sendBtn').addEventListener('click',()=>{
+  if(!state.songs.length){toast('Nothing logged yet','var(--muted)');return;}
+  sendToJun();
+});
+
+$('syncBtn').addEventListener('click',()=>fetchTeam(true));
+$('impBtn').addEventListener('click',()=>{
+  askCode('Import team code','Paste the code a colleague sent you. Their counts replace any earlier import from the same person.',raw=>{
+    try{
+      const txt=raw.trim();
+      if(!txt.startsWith('TIT1.'))throw 0;
+      const p=JSON.parse(decodeURIComponent(escape(atob(txt.slice(5)))));
+      if(!p.n||typeof p.d!=='object')throw 0;
+      const name=String(p.n).slice(0,20);
+      const days={};
+      let total=0;
+      for(const[d,c]of Object.entries(p.d)){
+        const n=parseInt(c,10);
+        if(/^\d{4}-\d{2}-\d{2}$/.test(d)&&n>0){days[d]=n;total+=n;}
+      }
+      if(!total)throw 0;
+      state.team.reports[name]=days;
+      if(!(name in state.team.paid))state.team.paid[name]=0;
+      save();render();
+      toast(name+': '+total+' tracks imported');
+    }catch(e){toast('Invalid code — ask them to resend','var(--muted)');}
+  });
+});
+
+$('teamRows').addEventListener('click',e=>{
+  const pb=e.target.closest('[data-pay]');
+  if(!pb||pb.disabled)return;
+  const name=pb.dataset.pay;
+  const days=state.team.reports[name]||{};
+  let n=0;for(const c of Object.values(days))n+=c;
+  const owed=Math.max(0,n*state.tcrate-(state.team.paid[name]||0));
+  askChoice('Mark '+name+' as paid?',money(owed)+' ('+peso(owed*state.php)+') will be recorded as settled.','Mark paid','Cancel',()=>{
+    state.team.paid[name]=n*state.tcrate;
+    save();render();
+    toast('Paid '+name+' '+money(owed));
+  });
+});
+
+$('songList').addEventListener('click',e=>{
+  const hdr=e.target.closest('.day-label');
+  if(hdr){
+    const d=hdr.dataset.day;
+    if(openDays.has(d))openDays.delete(d);else openDays.add(d);
+    hdr.classList.toggle('open');
+    const grp=hdr.nextElementSibling;
+    if(grp)grp.classList.toggle('open');
+    return;
+  }
+  const del=e.target.closest('.del');if(!del)return;
+  const s=state.songs.find(x=>x.id===del.dataset.del);
+  if(!s)return;
+  askConfirm('Delete this track?','"'+s.title+'" will be removed from the log and totals.',()=>{
+    state.songs=state.songs.filter(x=>x.id!==s.id);
+    save();render();
+  });
+});
+
+function setCounter(key,n){
+  n=Math.max(0,Math.floor(n)||0);
+  const prev=state[key];
+  state[key]=n;
+  save();render();
+  if(key==='pending'&&prev-n>0)toast((prev-n)+' cleared QA');
+  if(key==='failed'&&n-prev>0)toast((n-prev)+' failed — deducted','var(--fail)');
+  if(key==='returned'&&prev-n>0)toast((prev-n)+' resubmitted','var(--ret)');
+}
+document.querySelector('.pendbox').addEventListener('click',e=>{
+  const inc=e.target.closest('[data-inc]');
+  if(inc){setCounter(inc.dataset.inc,state[inc.dataset.inc]+1);return;}
+  const dec=e.target.closest('[data-dec]');
+  if(dec){setCounter(dec.dataset.dec,state[dec.dataset.dec]-1);return;}
+});
+document.querySelectorAll('.pendbox .val').forEach(inp=>{
+  inp.addEventListener('change',e=>setCounter(e.target.dataset.key,parseInt(e.target.value,10)));
+});
+
+$('rateBtn').addEventListener('click',()=>{
+  askNum('Pay per passed QA','Amount in USD you earn for each track that clears QA.',state.rate,n=>{
+    state.rate=n;save();render();
+  });
+});
+$('goalBtn').addEventListener('click',()=>{
+  askNum('Daily submission target','How many tracks you aim to submit per day.',state.goal,n=>{
+    state.goal=Math.floor(n);save();render();
+  });
+});
+$('todayPhp').addEventListener('click',e=>{
+  if(e.target.closest('#rateRefresh')){
+    fetchRate(true);
+    return;
+  }
+  askNum('USD → PHP exchange rate','Pesos per $1. Tap ↻ to fetch the live rate; set it manually here to override.',state.php,n=>{
+    state.php=n;rateLive=false;save();render();
+  });
+});
+
+load();
+</script>
+</body>
+</html>
