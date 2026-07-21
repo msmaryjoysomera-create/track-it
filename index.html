@@ -622,20 +622,6 @@ function openMenu(){
   openHtmlModal('Profiles','Tap a profile to open it. Manage the current one below.',html,[
     {label:'Set/Change PIN',cb:()=>{const p=activeProfile();if(p){pinState={};setNewPinFromMenu(p);}}},
     {label:'Rename current',cb:()=>{const p=activeProfile();if(p)askText('Rename profile','',p.name,v=>{if(v.trim()){p.name=v.trim().slice(0,20);if(state)state.name=p.name;saveReg();render();}});}},
-    {label:'Reset dashboard',cb:()=>{
-      const p=activeProfile();
-      const doReset=()=>{closeModal();askConfirm('Erase everything on this phone?','This deletes all profiles and logs stored on THIS phone and returns to first-time setup. Data other people sent to Jun is unaffected.',async()=>{
-        reg={profiles:[],data:{},active:null};
-        try{await store.set(PKEY,JSON.stringify(reg));}catch(e){}
-        location.reload();
-      });};
-      if(p&&p.pin){
-        closeModal();
-        promptPin('Enter PIN to reset','Confirm it\'s you before erasing this phone',p.pin,doReset,false);
-      }else{
-        doReset();
-      }
-    }},
   ]);
   document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{
     const id=b.dataset.open;closeModal();
