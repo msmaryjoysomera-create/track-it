@@ -717,18 +717,38 @@ function render(){
   const nAll=state.songs.length;
   const lead=state.role!=='member';
   const unpaidN=lead?(state.pending+state.failed+state.returned):0;
-  const confirmedAll=Math.max(0,(nAll-unpaidN)*state.rate);
 
-  $('todayAmt').textContent=money(nToday*state.rate);
+  // team cut: Jun earns (rate − colleague rate) per colleague track, summed by period
+  const tcut=Math.max(0,state.rate-state.tcrate);
+  let teamToday=0,teamWeek=0,teamMonth=0,teamAll=0;
+  if(lead&&state.team&&state.team.reports){
+    Object.values(state.team.reports).forEach(days=>{
+      for(const[d,c]of Object.entries(days)){
+        const n=parseInt(c,10)||0,dt=dOf(d);
+        teamAll+=n;
+        if(d===t)teamToday+=n;
+        if(dt>=wk)teamWeek+=n;
+        if(dt>=mo)teamMonth+=n;
+      }
+    });
+  }
+
+  const earnToday=nToday*state.rate + teamToday*tcut;
+  const earnWeek =nWeek*state.rate  + teamWeek*tcut;
+  const earnMonth=nMonth*state.rate + teamMonth*tcut;
+  const confirmedAll=Math.max(0,(nAll-unpaidN)*state.rate) + teamAll*tcut;
+
+  $('todayAmt').textContent=money(earnToday);
   if(lead){
     const pendVal=state.pending*state.rate;
-    $('todaySub').innerHTML=nToday+' logged today · <b>'+money(pendVal)+' ('+peso(pendVal*state.php)+')</b> waiting in QA overall';
+    const teamNote=teamToday>0?' · incl. '+money(teamToday*tcut)+' team cut':'';
+    $('todaySub').innerHTML=nToday+' logged today'+teamNote+' · <b>'+money(pendVal)+'</b> waiting in QA';
   }else{
     $('todaySub').innerHTML='<b>'+nToday+'</b> track'+(nToday===1?'':'s')+' logged today';
   }
-  $('todayPhp').innerHTML=peso(nToday*state.rate*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
-  $('weekAmt').textContent=money(nWeek*state.rate);$('weekPhp').textContent=peso(nWeek*state.rate*state.php);$('weekN').textContent=nWeek+' logged';
-  $('monthAmt').textContent=money(nMonth*state.rate);$('monthPhp').textContent=peso(nMonth*state.rate*state.php);
+  $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
+  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekN').textContent=nWeek+' logged'+(teamWeek?' +'+teamWeek+' team':'');
+  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);
   const ps=periodStart(now),pe=new Date(ps.getFullYear(),ps.getMonth()+1,23);
   const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
   $('monthN').textContent=fmt(ps)+'–'+fmt(pe);
