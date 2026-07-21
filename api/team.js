@@ -1,15 +1,27 @@
 // Track It — team mailbox
 // POST: a team member sends their counts { team, name, days }
 // GET:  the lead fetches all counts ?team=CODE
-import { put, list } from '@vercel/blob';
+import { put, list, head } from '@vercel/blob';
 
 const keyFor = team => 'teams/' + team.toLowerCase().replace(/[^a-z0-9-]/g, '') + '.json';
 
 async function readTeam(team) {
   const { blobs } = await list({ prefix: keyFor(team) });
   if (!blobs.length) return { reports: {} };
-  const r = await fetch(blobs[0].url + '?t=' + Date.now()); // bust CDN cache
-  try { return await r.json(); } catch (e) { return { reports: {} }; }
+  // private store: get a signed download URL via head(), then fetch it
+  let url;
+  try {
+    const info = await head(blobs[0].url);
+    url = (info && info.downloadUrl) || blobs[0].downloadUrl || blobs[0].url;
+  } catch (e) {
+    url = blobs[0].downloadUrl || blobs[0].url;
+  }
+  try {
+    const r = await fetch(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+    return await r.json();
+  } catch (e) {
+    return { reports: {} };
+  }
 }
 
 export default async function handler(req, res) {
@@ -34,7 +46,7 @@ export default async function handler(req, res) {
       data.updated = Date.now();
 
       await put(keyFor(team), JSON.stringify(data), {
-        access: 'public',
+        access: 'private',
         addRandomSuffix: false,
         allowOverwrite: true,
         contentType: 'application/json',
