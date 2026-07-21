@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   const out = { hasToken: !!process.env.BLOB_READ_WRITE_TOKEN };
   try {
     const r = await put('teams/_selftest.json', JSON.stringify({ t: Date.now() }), {
-      access: 'private',
+      access: 'public',
       addRandomSuffix: false,
       allowOverwrite: true,
       contentType: 'application/json',
