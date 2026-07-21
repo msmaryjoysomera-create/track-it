@@ -198,16 +198,17 @@
     justify-content:center;z-index:50;padding:24px}
   .overlay.show{display:flex}
   .modal{background:var(--card-2);border:1px solid var(--line);border-radius:16px;padding:20px 18px;
-    width:100%;max-width:320px}
+    width:100%;max-width:340px;max-height:85vh;overflow-y:auto}
   .modal h3{font-size:15px;font-weight:600;margin-bottom:4px}
   .modal p{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.45}
   .modal input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;
     color:var(--text);padding:13px 14px;font-size:17px;font-family:var(--mono);margin-bottom:14px;
     font-variant-numeric:tabular-nums}
   .modal input:focus{outline:2px solid var(--gold);border-color:transparent}
-  .modal .btns{display:flex;gap:8px}
-  .modal .btns button{flex:1;border:none;border-radius:11px;padding:12px;font-size:14px;font-weight:600;
-    cursor:pointer;font-family:var(--sans)}
+  .modal .btns{display:flex;flex-wrap:wrap;gap:8px}
+  .modal .btns button{flex:1 1 calc(50% - 4px);min-width:0;border:none;border-radius:11px;padding:12px 10px;
+    font-size:13.5px;font-weight:600;cursor:pointer;font-family:var(--sans);white-space:nowrap}
+  .modal .btns button.ok{flex-basis:100%;order:9}
   .modal .cancel{background:var(--card);color:var(--muted);border:1px solid var(--line)}
   .modal .ok{background:var(--gold);color:#1A1400}
   .modal .ok.danger{background:#F07A7A;color:#2A0808}
@@ -533,11 +534,8 @@ function finishNewProfile(name,role,st,done){
   // open the follow-up modal FIRST, then render underneath it (modal covers the dashboard)
   if(done)done();
   render();
-  // offer to set a PIN
-  pendingAfterModal=()=>askChoice('Add a PIN?','Protect '+name+'\'s tracker with a 4-digit PIN. You can change it later from the ⚙ menu.',
-    'Set a PIN','Skip for now',
-    ()=>setNewPin(prof),
-    ()=>{});
+  // require a PIN — no skip
+  pendingAfterModal=()=>setNewPin(prof,true);
 }
 
 // ---- PIN pad ----
@@ -548,11 +546,14 @@ function promptPin(title,desc,expect,onOk,initial){
   $('lockSwitch').style.display=reg.profiles.length>1?'block':'none';
   showLock();paintDots();
 }
-function setNewPin(prof){
-  pinBuf='';pinState={mode:'set',phase:1,first:'',prof};
+function setNewPin(prof,mandatory){
+  pinBuf='';pinState={mode:'set',phase:1,first:'',prof,mandatory:!!mandatory};
   $('lockTitle').textContent='Set a PIN';
-  $('lockDesc').textContent='Choose a 4-digit PIN for '+prof.name;
+  $('lockDesc').textContent=mandatory?'Create a 4-digit PIN to secure '+prof.name+'\'s dashboard':'Choose a 4-digit PIN for '+prof.name;
   $('lockSwitch').style.display='none';
+  // hide the Cancel key during a mandatory PIN setup so it can't be skipped
+  const cancelKey=document.querySelector('#lockPad [data-k="cancel"]');
+  if(cancelKey)cancelKey.style.visibility=mandatory?'hidden':'';
   showLock();paintDots();
 }
 function paintDots(err){
@@ -562,6 +563,7 @@ function paintDots(err){
 }
 function pinKey(k){
   if(k==='cancel'){
+    if(pinState&&pinState.mode==='set'&&pinState.mandatory)return; // can't skip a mandatory PIN
     if(pinState&&pinState.mode==='set'&&pinState.fromMenu){hideLock();openMenu();return;}
     if(pinState&&pinState.mode==='check'&&!pinState.initial){hideLock();return;}
     // initial check with nowhere to go → show switcher if multiple, else stay
@@ -588,6 +590,8 @@ function submitPin(){
     if(pinBuf===pinState.first){
       pinState.prof.pin=pinBuf;saveReg();
       const back=pinState.fromMenu;pinState=null;hideLock();
+      const cancelKey=document.querySelector('#lockPad [data-k="cancel"]');
+      if(cancelKey)cancelKey.style.visibility='';
       toast('PIN set 🔒');
       if(back)render();
     }else{
@@ -618,11 +622,20 @@ function openMenu(){
   openHtmlModal('Profiles','Tap a profile to open it. Manage the current one below.',html,[
     {label:'Set/Change PIN',cb:()=>{const p=activeProfile();if(p){pinState={};setNewPinFromMenu(p);}}},
     {label:'Rename current',cb:()=>{const p=activeProfile();if(p)askText('Rename profile','',p.name,v=>{if(v.trim()){p.name=v.trim().slice(0,20);if(state)state.name=p.name;saveReg();render();}});}},
-    {label:'Reset this phone',cb:()=>{closeModal();askConfirm('Erase everything on this phone?','This deletes all profiles and logs stored on THIS phone and returns to first-time setup. Data other people sent to Jun is unaffected.',async()=>{
-      reg={profiles:[],data:{},active:null};
-      try{await store.set(PKEY,JSON.stringify(reg));}catch(e){}
-      location.reload();
-    });}},
+    {label:'Reset dashboard',cb:()=>{
+      const p=activeProfile();
+      const doReset=()=>{closeModal();askConfirm('Erase everything on this phone?','This deletes all profiles and logs stored on THIS phone and returns to first-time setup. Data other people sent to Jun is unaffected.',async()=>{
+        reg={profiles:[],data:{},active:null};
+        try{await store.set(PKEY,JSON.stringify(reg));}catch(e){}
+        location.reload();
+      });};
+      if(p&&p.pin){
+        closeModal();
+        promptPin('Enter PIN to reset','Confirm it\'s you before erasing this phone',p.pin,doReset,false);
+      }else{
+        doReset();
+      }
+    }},
   ]);
   document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{
     const id=b.dataset.open;closeModal();
