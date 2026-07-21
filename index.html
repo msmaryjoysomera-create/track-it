@@ -194,7 +194,7 @@
     padding:11px;font-size:13px;cursor:pointer;font-family:var(--sans);margin-top:2px}
 
   /* modal */
-  .overlay{position:fixed;inset:0;background:rgba(6,8,12,.72);display:none;align-items:center;
+  .overlay{position:fixed;inset:0;background:rgba(10,13,18,.97);display:none;align-items:center;
     justify-content:center;z-index:50;padding:24px}
   .overlay.show{display:flex}
   .modal{background:var(--card-2);border:1px solid var(--line);border-radius:16px;padding:20px 18px;
@@ -313,7 +313,7 @@
 
 <div class="grid">
   <div class="stat"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div><div class="n" id="weekN"></div></div>
-  <div class="stat"><div class="eyebrow">Month</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="n" id="monthN"></div></div>
+  <div class="stat"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="n" id="monthN"></div></div>
   <div class="stat"><div class="eyebrow">All time</div><div class="v" id="allAmt">$0.00</div><div class="p" id="allPhp"></div><div class="n" id="allN"></div></div>
 </div>
 
@@ -354,29 +354,14 @@
 </div>
 
 <script>
-const KEY='jun-beatpulse-tracker-v8';       // legacy single-profile (migrated)
-const PKEY='trackit-profiles-v1';           // profile registry + per-profile data
+const KEY='__disabled__';                    // legacy migration off — starting fresh
+const PKEY='trackit-profiles-v3';            // profile registry + per-profile data (v3 = fresh start)
 const defaultState=()=>({role:null,name:'',rate:0,tcrate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,
   teamCode:'',team:{reports:{},paid:{}},songs:[]});
 let state=defaultState();
 // registry: { profiles:[{id,name,role,pin,avatar}], data:{ [id]: <state> }, active:id }
 let reg={profiles:[],data:{},active:null};
 let showAll=false;
-
-// Jun's July baseline — 66 passed + 7 pending = 73 submitted (applied on lead setup)
-function seedSongs(){
-  const counts=[5,4,5,4,5,4,5,5,4,5,4,5,4,5,4,5]; // Jul 1–16, totals 73
-  const songs=[];
-  counts.forEach((n,di)=>{
-    const day=di+1;
-    const date='2026-07-'+String(day).padStart(2,'0');
-    for(let i=0;i<n;i++){
-      const ts=new Date(2026,6,day,9+i,(i*17)%60).getTime();
-      songs.push({id:'seed-'+day+'-'+i,title:'Track #'+(i+1),date,ts});
-    }
-  });
-  return songs;
-}
 
 const $=id=>document.getElementById(id);
 const money=n=>'$'+n.toFixed(2);
@@ -481,22 +466,15 @@ function genTeamCode(){
 async function sendToJun(){
   const days={};
   state.songs.forEach(s=>{days[s.date]=(days[s.date]||0)+1;});
-  if(!state.teamCode){
-    showCode('TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days})))),
-      'No team code set','You haven\'t entered Jun\'s team code, so auto-send is off. Paste this code to him instead, or add the team code via the \u2699 menu.');
-    return;
+  if(state.teamCode){
+    try{
+      const res=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({team:state.teamCode,name:state.name||'Member',days})});
+      if(res.ok){toast('Sent to Jun \u2713');return;}
+    }catch(e){/* offline or preview — fall back to code */}
   }
-  try{
-    const res=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({team:state.teamCode,name:state.name||'Member',days})});
-    if(res.ok){toast('Sent to Jun \u2713');return;}
-    let why='';try{const j=await res.json();why=j.error||('HTTP '+res.status);}catch(e){why='HTTP '+res.status;}
-    const code='TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days}))));
-    showCode(code,'Server said: '+why,'Auto-send didn\'t go through. Paste this code to Jun instead — his Import will accept it.');
-  }catch(e){
-    const code='TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days}))));
-    showCode(code,'Couldn\'t reach the server','Network error ('+(e&&e.message||'offline')+'). Paste this code to Jun instead — his Import will accept it.');
-  }
+  const code='TIT1.'+btoa(unescape(encodeURIComponent(JSON.stringify({n:state.name||'Member',d:days}))));
+  showCode(code,'Couldn\'t reach the server','Copy this code and paste it to Jun in chat instead — his app can import it.');
 }
 
 let teamSyncing=false;
@@ -528,12 +506,10 @@ function createProfile(first){
     'I\'m Jun (lead)','I\'m a team member',
     ()=>{ // lead
       if(reg.profiles.some(p=>p.role==='lead')){toast('A lead profile already exists','var(--muted)');return;}
-      askNum('Your pay per passed QA','Enter your rate in USD. It\'s never shown to anyone else.','',r=>{
-        const st=defaultState();st.role='lead';st.name='Jun';st.rate=r;
-        st.songs=seedSongs();st.pending=7;st.teamCode=genTeamCode();
-        finishNewProfile('Jun','lead',st,()=>{
-          showCode(st.teamCode,'Your team code','Share this once with each colleague — they enter it during setup and their counts sync to your Team card automatically.');
-        });
+      const st=defaultState();st.role='lead';st.name='Jun';st.rate=3.13;
+      st.teamCode=genTeamCode();
+      finishNewProfile('Jun','lead',st,()=>{
+        showCode(st.teamCode,'Your team code','Share this once with each colleague — they enter it during setup and their counts sync to your Team card automatically.');
       });
     },
     ()=>{ // member
@@ -553,13 +529,15 @@ function finishNewProfile(name,role,st,done){
   const avatar=AVATARS[reg.profiles.length%AVATARS.length];
   const prof={id,name,role,pin:'',avatar};
   reg.profiles.push(prof);reg.data[id]=st;reg.active=id;state=st;
-  saveReg();hideLock();render();
+  saveReg();hideLock();
+  // open the follow-up modal FIRST, then render underneath it (modal covers the dashboard)
   if(done)done();
-  // offer to set a PIN right away
-  setTimeout(()=>askChoice('Add a PIN?','Protect '+name+'\'s tracker with a 4-digit PIN. You can change it later from the ⚙ menu.',
+  render();
+  // offer to set a PIN
+  pendingAfterModal=()=>askChoice('Add a PIN?','Protect '+name+'\'s tracker with a 4-digit PIN. You can change it later from the ⚙ menu.',
     'Set a PIN','Skip for now',
     ()=>setNewPin(prof),
-    ()=>{}),350);
+    ()=>{});
 }
 
 // ---- PIN pad ----
@@ -640,6 +618,11 @@ function openMenu(){
   openHtmlModal('Profiles','Tap a profile to open it. Manage the current one below.',html,[
     {label:'Set/Change PIN',cb:()=>{const p=activeProfile();if(p){pinState={};setNewPinFromMenu(p);}}},
     {label:'Rename current',cb:()=>{const p=activeProfile();if(p)askText('Rename profile','',p.name,v=>{if(v.trim()){p.name=v.trim().slice(0,20);if(state)state.name=p.name;saveReg();render();}});}},
+    {label:'Reset this phone',cb:()=>{closeModal();askConfirm('Erase everything on this phone?','This deletes all profiles and logs stored on THIS phone and returns to first-time setup. Data other people sent to Jun is unaffected.',async()=>{
+      reg={profiles:[],data:{},active:null};
+      try{await store.set(PKEY,JSON.stringify(reg));}catch(e){}
+      location.reload();
+    });}},
   ]);
   document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{
     const id=b.dataset.open;closeModal();
@@ -701,10 +684,16 @@ function save(){
 }
 
 function weekStart(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x;} // Monday
+// cutoff is the 23rd; pay period runs the 24th → 23rd. Return the start (most recent 24th).
+function periodStart(d){
+  const x=new Date(d);x.setHours(0,0,0,0);
+  if(x.getDate()>=24)return new Date(x.getFullYear(),x.getMonth(),24);
+  return new Date(x.getFullYear(),x.getMonth()-1,24);
+}
 function dOf(s){return new Date(s+'T12:00:00');}
 
 function render(){
-  const t=todayStr(),now=new Date(),wk=weekStart(now),mo=new Date(now.getFullYear(),now.getMonth(),1);
+  const t=todayStr(),now=new Date(),wk=weekStart(now),mo=periodStart(now);
   let nToday=0,nWeek=0,nMonth=0;
   state.songs.forEach(s=>{
     const dt=dOf(s.date);
@@ -726,7 +715,10 @@ function render(){
   }
   $('todayPhp').innerHTML=peso(nToday*state.rate*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
   $('weekAmt').textContent=money(nWeek*state.rate);$('weekPhp').textContent=peso(nWeek*state.rate*state.php);$('weekN').textContent=nWeek+' logged';
-  $('monthAmt').textContent=money(nMonth*state.rate);$('monthPhp').textContent=peso(nMonth*state.rate*state.php);$('monthN').textContent=nMonth+' logged';
+  $('monthAmt').textContent=money(nMonth*state.rate);$('monthPhp').textContent=peso(nMonth*state.rate*state.php);
+  const ps=periodStart(now),pe=new Date(ps.getFullYear(),ps.getMonth()+1,23);
+  const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  $('monthN').textContent=fmt(ps)+'–'+fmt(pe);
   $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);
   $('allN').textContent=lead?(state.pending+' pend · '+state.failed+' fail · '+state.returned+' ret deducted'):(nAll+' logged');
   $('rateBtn').textContent=money(state.rate)+(lead?'/QA':'/track');
@@ -823,7 +815,7 @@ function toast(msg,color){const el=$('toast');el.textContent=msg;el.style.color=
   el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1600);}
 
 // in-app modal (browser prompt/confirm are blocked in sandboxed previews)
-let modalCb=null,cancelCb=null;
+let modalCb=null,cancelCb=null,pendingAfterModal=null;
 function resetModal(){
   $('mCustom').innerHTML='';$('mCustom').style.display='none';
   $('mBtns').style.display='flex';
@@ -853,6 +845,36 @@ function askText(title,desc,value,cb){
   modalCb=()=>cb(inp.value);cancelCb=null;
   $('overlay').classList.add('show');
   setTimeout(()=>{inp.focus();inp.select();},50);
+}
+function askDate(title,desc,cb){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  const inp=$('mInput');
+  inp.type='date';inp.removeAttribute('inputmode');inp.style.display='block';inp.value='';
+  inp.max=todayStr();
+  $('mOk').textContent='Save';
+  $('mCancel').textContent='Cancel';
+  modalCb=()=>{if(inp.value)cb(inp.value);};cancelCb=null;
+  $('overlay').classList.add('show');
+  setTimeout(()=>inp.focus(),50);
+}
+function promptDate(title,desc,expect,onOk,initial){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  const inp=$('mInput');
+  inp.type='date';inp.removeAttribute('inputmode');inp.style.display='block';inp.value='';
+  inp.max=todayStr();
+  $('mOk').textContent='Unlock';
+  $('mCancel').textContent=reg.profiles.length>1?'Switch profile':'Cancel';
+  modalCb=()=>{
+    if(inp.value===expect){onOk();}
+    else{toast('That date doesn\'t match','var(--fail)');setTimeout(()=>promptDate(title,desc,expect,onOk,initial),300);}
+  };
+  cancelCb=initial?()=>{ if(reg.profiles.length>1)openMenu(); else promptDate(title,desc,expect,onOk,initial); }:null;
+  $('overlay').classList.add('show');
+  setTimeout(()=>inp.focus(),50);
 }
 function askChoice(title,desc,okLabel,cancelLabel,okCb,cancelCbFn){
   resetModal();
@@ -920,6 +942,7 @@ function closeModal(){$('overlay').classList.remove('show');modalCb=null;cancelC
   // restore standard buttons for next use
   $('mBtns').innerHTML='<button class="cancel" id="mCancel">Cancel</button><button class="ok" id="mOk">Save</button>';
   bindModalButtons();
+  if(pendingAfterModal){const f=pendingAfterModal;pendingAfterModal=null;setTimeout(f,60);}
 }
 function bindModalButtons(){
   $('mCancel').addEventListener('click',()=>{const cb=cancelCb;closeModal();if(cb)cb();});
