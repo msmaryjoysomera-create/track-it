@@ -160,19 +160,23 @@
   .stat .n{font-size:11px;color:var(--muted);margin-top:2px}
 
   .list-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
-  .list-head h2{font-size:14px;font-weight:600}
+  .list-head h2{font-size:14px;font-weight:600;cursor:pointer}
+  .list-head h2 .chev{display:inline-block;font-size:10px;color:var(--muted);transition:transform .2s ease;margin-left:4px}
+  .list-head.collapsed h2 .chev{transform:rotate(-90deg)}
+  #logBody.collapsed{display:none}
   .list-head span{font-size:12px;color:var(--muted)}
   .day-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em;
     text-transform:uppercase;margin:14px 0 6px;display:flex;justify-content:space-between;align-items:center;
-    cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 13px;
+    cursor:pointer;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:11px 13px;
     -webkit-user-select:none;user-select:none}
+  .logcard .day-label:first-child{margin-top:0}
   .day-label:active{background:var(--card-2)}
   .day-label em{font-style:normal;color:var(--gold);display:flex;align-items:center;gap:8px}
   .day-label .chev{display:inline-block;transition:transform .2s ease;font-size:10px;color:var(--muted)}
   .day-label.open .chev{transform:rotate(180deg)}
   .day-group{display:none}
   .day-group.open{display:block}
-  .song{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid var(--line);
+  .song{display:flex;align-items:center;gap:11px;background:var(--bg);border:1px solid var(--line);
     border-radius:12px;padding:11px 12px;margin-bottom:7px}
   .song .idx{font-family:var(--mono);font-size:11px;color:var(--muted);width:20px;text-align:right;flex-shrink:0}
   .song .mid{flex:1;min-width:0}
@@ -183,9 +187,9 @@
   .tag.ok{background:var(--pass-dim);color:var(--pass)}
   .del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 2px;flex-shrink:0;opacity:.6}
 
-  .empty{text-align:center;color:var(--muted);font-size:13.5px;padding:32px 20px;background:var(--card);
+  .empty{text-align:center;color:var(--muted);font-size:13.5px;padding:32px 20px;background:var(--bg);
     border:1px dashed var(--line);border-radius:var(--radius);line-height:1.6}
-  .hint{font-size:11.5px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.5}
+  .hint{font-size:11.5px;color:var(--muted);text-align:center;margin:2px 0 14px;line-height:1.5}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--card-2);
     border:1px solid var(--line);color:var(--pass);font-family:var(--mono);font-size:13px;padding:10px 18px;border-radius:99px;
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;font-weight:600}
@@ -220,8 +224,15 @@
   /* team */
   .team{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:14px 14px 6px;margin-bottom:16px}
+  .logcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:14px 14px 8px;margin-bottom:16px}
+  .logcard .list-head{margin-bottom:8px}
   .team .th{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
   .team .th h2{font-size:14px;font-weight:600}
+  .team .th h2 .chev{display:inline-block;font-size:10px;color:var(--muted);transition:transform .2s ease;margin-left:4px}
+  .team.collapsed .th h2 .chev{transform:rotate(-90deg)}
+  .team .th>h2{cursor:pointer;flex:1}
+  .team.collapsed #teamBody{display:none}
   .team .th .impBtn{background:var(--pass-dim);border:1px solid rgba(78,214,167,.3);color:var(--pass);
     border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
   .team .tsum{font-size:11.5px;color:var(--muted);margin-bottom:8px}
@@ -312,37 +323,42 @@
   </div>
 </section>
 
-<input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
-<button class="logBtn" id="addBtn">+ Log a submission</button>
-<button class="sendBtn" id="sendBtn">📤 Send my counts to Jun</button>
-
 <div class="grid">
   <div class="stat"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div><div class="n" id="weekN"></div></div>
   <div class="stat"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="n" id="monthN"></div></div>
   <div class="stat"><div class="eyebrow">All time</div><div class="v" id="allAmt">$0.00</div><div class="p" id="allPhp"></div><div class="n" id="allN"></div></div>
 </div>
 
+<input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
+<button class="logBtn" id="addBtn">+ Log a submission</button>
+<button class="sendBtn" id="sendBtn">📤 Send my counts to Jun</button>
+<p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
+
+<div class="logcard">
+  <div class="list-head" id="logHead">
+    <h2>Work log <span class="chev" id="logChev">▼</span></h2>
+    <span id="totalCount"></span>
+  </div>
+  <div id="logBody">
+    <div id="songList"></div>
+  </div>
+</div>
+
 <div class="team hidden" id="teamCard">
-  <div class="th">
-    <h2>Team</h2>
-    <div style="display:flex;gap:6px">
+  <div class="th" id="teamHead">
+    <h2>Team <span class="chev" id="teamChev">▼</span></h2>
+    <div style="display:flex;gap:6px" id="teamBtns">
       <button class="impBtn" id="syncBtn">🔄 Sync</button>
       <button class="impBtn" id="impBtn">📥 Import</button>
     </div>
   </div>
-  <div class="synced" id="syncedAt"></div>
-  <div class="tsum" id="teamSum"></div>
-  <div id="teamRows"></div>
-  <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
+  <div id="teamBody">
+    <div class="synced" id="syncedAt"></div>
+    <div class="tsum" id="teamSum"></div>
+    <div id="teamRows"></div>
+    <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
+  </div>
 </div>
-
-<div class="list-head">
-  <h2>Work log</h2>
-  <span id="totalCount"></span>
-</div>
-<div id="songList"></div>
-
-<p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
 
 <div class="toast" id="toast"></div>
 
@@ -1064,6 +1080,13 @@ function exportCSV(){
   toast('Report exported ⬇');
 }
 $('exportBtn').addEventListener('click',exportCSV);
+$('teamHead').querySelector('h2').addEventListener('click',()=>{
+  $('teamCard').classList.toggle('collapsed');
+});
+$('logHead').querySelector('h2').addEventListener('click',()=>{
+  $('logHead').classList.toggle('collapsed');
+  $('logBody').classList.toggle('collapsed');
+});
 $('syncBtn').addEventListener('click',()=>fetchTeam(true));
 $('impBtn').addEventListener('click',()=>{
   askCode('Import team code','Paste the code a colleague sent you. Their counts replace any earlier import from the same person.',raw=>{
