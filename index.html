@@ -238,6 +238,10 @@
     border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);flex-shrink:0}
   .trow .payBtn:disabled{opacity:.35;cursor:default}
   .team .none{font-size:12.5px;color:var(--muted);padding:8px 0 10px;line-height:1.5}
+  .team .synced{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-bottom:8px}
+  .team .expBtn{width:100%;background:var(--card-2);border:1px solid var(--line);color:var(--text);
+    border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);margin:6px 0 4px}
+  .team .expBtn:active{transform:scale(.98)}
 </style>
 </head>
 <body>
@@ -326,8 +330,10 @@
       <button class="impBtn" id="impBtn">📥 Import</button>
     </div>
   </div>
+  <div class="synced" id="syncedAt"></div>
   <div class="tsum" id="teamSum"></div>
   <div id="teamRows"></div>
+  <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
 </div>
 
 <div class="list-head">
@@ -487,18 +493,29 @@ async function fetchTeam(notify){
     if(res.ok){
       const data=await res.json();
       if(data&&data.reports){
-        let changed=false;
         for(const[name,days]of Object.entries(data.reports)){
           state.team.reports[name]=days;
           if(!(name in state.team.paid))state.team.paid[name]=0;
-          changed=true;
         }
-        if(changed){save();render();}
+        state.team.lastSync=Date.now();
+        save();render();
         if(notify)toast('Team synced \u2713');
       }
     }else if(notify)toast('Sync failed — try again','var(--muted)');
   }catch(e){if(notify)toast('Offline — using last synced counts','var(--muted)');}
   teamSyncing=false;
+}
+function syncAgo(){
+  const ts=state.team&&state.team.lastSync;
+  if(!ts)return 'not synced yet';
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return 'synced just now';
+  const m=Math.floor(s/60);
+  if(m<60)return 'synced '+m+' min ago';
+  const h=Math.floor(m/60);
+  if(h<24)return 'synced '+h+' hr'+(h>1?'s':'')+' ago';
+  const d=Math.floor(h/24);
+  return 'synced '+d+' day'+(d>1?'s':'')+' ago';
 }
 
 // ---- profile creation ----
@@ -764,6 +781,7 @@ function render(){
 function renderTeam(){
   const cut=Math.max(0,state.rate-state.tcrate);
   const names=Object.keys(state.team.reports);
+  $('syncedAt').textContent=state.teamCode?syncAgo():'';
   let totalN=0;
   let rows='';
   names.forEach(name=>{
@@ -988,6 +1006,64 @@ $('sendBtn').addEventListener('click',()=>{
   sendToJun();
 });
 
+function exportCSV(){
+  const now=new Date(),ps=periodStart(now),pe=new Date(ps.getFullYear(),ps.getMonth()+1,23);
+  const cut=Math.max(0,state.rate-state.tcrate);
+  const fmtD=d=>d.toISOString().slice(0,10);
+  const rows=[];
+  rows.push(['Track It — Earnings Report']);
+  rows.push(['Generated',new Date().toLocaleString()]);
+  rows.push(['Pay period',fmtD(ps)+' to '+fmtD(pe)]);
+  rows.push(['Your QA rate (USD)',state.rate.toFixed(2)]);
+  rows.push(['Exchange rate (PHP per USD)',state.php.toFixed(2)]);
+  rows.push([]);
+  // Jun's own daily log
+  rows.push(['YOUR SUBMISSIONS']);
+  rows.push(['Date','Track','Time']);
+  state.songs.slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(s=>{
+    const time=s.ts?new Date(s.ts).toLocaleString():'';
+    rows.push([s.date,s.title,time]);
+  });
+  rows.push([]);
+  rows.push(['Your total tracks',state.songs.length]);
+  rows.push(['Pending QA',state.pending]);
+  rows.push(['Failed QA',state.failed]);
+  rows.push(['Returned',state.returned]);
+  const ownConfirmed=Math.max(0,state.songs.length-(state.pending+state.failed+state.returned));
+  rows.push(['Your confirmed earnings (USD)',(ownConfirmed*state.rate).toFixed(2)]);
+  rows.push([]);
+  // team
+  const names=Object.keys(state.team.reports||{});
+  if(names.length){
+    rows.push(['TEAM']);
+    rows.push(['Name','Tracks','They earn (USD)','Your cut (USD)','Paid (USD)','Still owed (USD)']);
+    let tTracks=0,tCut=0;
+    names.forEach(name=>{
+      const days=state.team.reports[name];
+      let n=0;for(const c of Object.values(days))n+=c;
+      const earned=n*state.tcrate, mycut=n*cut, paid=state.team.paid[name]||0, owed=Math.max(0,earned-paid);
+      tTracks+=n;tCut+=mycut;
+      rows.push([name,n,earned.toFixed(2),mycut.toFixed(2),paid.toFixed(2),owed.toFixed(2)]);
+    });
+    rows.push([]);
+    rows.push(['Team tracks total',tTracks]);
+    rows.push(['Your total cut from team (USD)',tCut.toFixed(2)]);
+    rows.push(['YOUR GRAND TOTAL (USD)',(ownConfirmed*state.rate+tCut).toFixed(2)]);
+    rows.push(['YOUR GRAND TOTAL (PHP)',((ownConfirmed*state.rate+tCut)*state.php).toFixed(2)]);
+  }
+  const csv=rows.map(r=>r.map(cell=>{
+    const s=String(cell==null?'':cell);
+    return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+  }).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='track-it-'+fmtD(now)+'.csv';
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+  toast('Report exported ⬇');
+}
+$('exportBtn').addEventListener('click',exportCSV);
 $('syncBtn').addEventListener('click',()=>fetchTeam(true));
 $('impBtn').addEventListener('click',()=>{
   askCode('Import team code','Paste the code a colleague sent you. Their counts replace any earlier import from the same person.',raw=>{
