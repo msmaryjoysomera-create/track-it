@@ -565,9 +565,7 @@ function createProfile(first){
       if(reg.profiles.some(p=>p.role==='lead')){toast('A lead profile already exists','var(--muted)');return;}
       const st=defaultState();st.role='lead';st.name='Jun';st.rate=3.13;
       st.teamCode=genTeamCode();
-      finishNewProfile('Jun','lead',st,()=>{
-        showCode(st.teamCode,'Your team code','Share this once with each colleague — they enter it during setup and their counts sync to your Team card automatically.');
-      });
+      finishNewProfile('Jun','lead',st);
     },
     ()=>{ // member
       askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.','',v=>{
