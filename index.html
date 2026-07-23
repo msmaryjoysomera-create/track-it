@@ -64,6 +64,25 @@
     align-items:center;justify-content:center;padding:24px}
   .lock.show{display:flex}
   .lock .eq{margin-bottom:20px}
+  .login{position:fixed;inset:0;background:var(--bg);z-index:101;display:none;
+    align-items:center;justify-content:center;padding:24px}
+  .login.show{display:flex}
+  .login-card{width:100%;max-width:340px;display:flex;flex-direction:column;align-items:stretch;text-align:center}
+  .login-card .eq{margin:0 auto 14px}
+  .login-card h2{font-size:24px;font-weight:700;margin-bottom:2px}
+  .login-sub{font-size:13px;color:var(--muted);margin-bottom:22px}
+  .login-lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);text-align:left;margin-bottom:5px}
+  .login input{width:100%;background:var(--card);border:1px solid var(--line);border-radius:12px;
+    color:var(--text);padding:14px;font-size:16px;font-family:var(--sans);margin-bottom:14px}
+  .login input:focus{outline:2px solid var(--gold);border-color:transparent}
+  .login-btn{width:100%;background:var(--gold);color:#1A1400;border:none;border-radius:12px;
+    padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--sans);margin-top:2px}
+  .login-btn:active{transform:scale(.99)}
+  .login-msg{min-height:18px;font-size:12.5px;color:var(--fail);margin:10px 0 2px}
+  .login-link{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;
+    text-decoration:underline;font-family:var(--sans);padding:8px;margin-top:6px}
+  .login-link:active{color:var(--text)}
   .lock h2{font-size:18px;font-weight:700;margin-bottom:4px;text-align:center}
   .lock p{font-size:13px;color:var(--muted);margin-bottom:22px;text-align:center;min-height:18px}
   .dots{display:flex;gap:14px;margin-bottom:26px}
@@ -295,6 +314,21 @@
   <button class="switch" id="lockSwitch">Switch profile</button>
 </div>
 
+<div class="login" id="login">
+  <div class="login-card">
+    <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <h2>Track It</h2>
+    <p class="login-sub">Log in to your tracker</p>
+    <label class="login-lbl">Username</label>
+    <input type="text" id="loginName" placeholder="Your profile name" autocomplete="off" autocapitalize="words">
+    <label class="login-lbl">Team code</label>
+    <input type="text" id="loginCode" placeholder="Your team code" autocomplete="off" autocapitalize="none">
+    <button class="login-btn" id="loginBtn">Log in</button>
+    <div class="login-msg" id="loginMsg"></div>
+    <button class="login-link" id="loginCreate">Create a new profile</button>
+  </div>
+</div>
+
 <header>
   <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div>
@@ -409,7 +443,7 @@
 
 <script>
 const KEY='__disabled__';                    // legacy migration off — starting fresh
-const PKEY='trackit-profiles-v5';            // profile registry + per-profile data (v5 = fresh start, PIN-by-id fix)
+const PKEY='trackit-profiles-v6';            // profile registry + per-profile data (v6 = login page + hashed PIN sync)
 const defaultState=()=>({role:null,name:'',rate:0,tcrate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,
   teamCode:'',team:{reports:{},paid:{}},songs:[]});
 let state=defaultState();
@@ -420,6 +454,18 @@ let showAll=false;
 const $=id=>document.getElementById(id);
 const money=n=>'$'+n.toFixed(2);
 const peso=n=>'₱'+n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
+// hash a PIN (with team+name as salt) so the raw PIN never leaves the device
+async function hashPin(pin,team,name){
+  const input='trackit|'+String(team).toLowerCase()+'|'+String(name).toLowerCase()+'|'+pin;
+  try{
+    const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(input));
+    return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+  }catch(e){
+    // fallback simple hash if crypto.subtle unavailable (older/insecure contexts)
+    let h=0;for(let i=0;i<input.length;i++){h=(h*31+input.charCodeAt(i))|0;}
+    return 'f'+(h>>>0).toString(16);
+  }
+}
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 
 // storage adapter: Claude artifact storage → browser localStorage → memory only
@@ -473,6 +519,20 @@ async function saveReg(){
 }
 // push the active profile's full state to the cloud (debounced), keyed by team code + name
 let cloudTimer=null;
+// push full state AND the hashed PIN right now (used when a PIN is set / login confirmed)
+async function cloudBackupWithPin(pin){
+  if(!state||!state.teamCode||!state.name)return;
+  try{
+    const now=Date.now();
+    const pinHash=await hashPin(pin,state.teamCode,state.name);
+    const payload={role:state.role,rate:state.rate,tcrate:state.tcrate,goal:state.goal,
+      pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,
+      teamCode:state.teamCode,team:state.team,songs:state.songs};
+    const r=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:now,data:payload}),pinHash})});
+    if(r.ok){state._syncTs=now;state._dirty=false;const prof=activeProfile();if(prof&&reg.data[prof.id]){reg.data[prof.id]._syncTs=now;reg.data[prof.id]._dirty=false;}saveReg();}
+  }catch(e){}
+}
 function cloudBackup(){
   if(!state||!state.teamCode||!state.name)return;
   clearTimeout(cloudTimer);
@@ -590,17 +650,76 @@ async function cloudRestore(prof){
 function activeProfile(){return reg.profiles.find(p=>p.id===reg.active);}
 
 async function load(){
-  const found=await loadReg();
-  if(!found||!reg.profiles.length){
-    render();
-    fetchRate();
-    setTimeout(()=>createProfile(true),300);
+  await loadReg();
+  render();
+  fetchRate();
+  // always start at the login screen (create-new is the secondary path)
+  showLogin();
+}
+function showLogin(){
+  $('login').classList.add('show');
+  $('loginMsg').textContent='';
+  // prefill last-used name/code if we have a profile locally
+  const p=reg.profiles&&reg.profiles[0];
+  if(p){$('loginName').value=p.name||'';const d=reg.data[p.id];if(d&&d.teamCode)$('loginCode').value=d.teamCode;}
+}
+function hideLogin(){$('login').classList.remove('show');}
+
+async function doLogin(){
+  const name=$('loginName').value.trim();
+  const code=$('loginCode').value.trim().toLowerCase();
+  const msg=$('loginMsg');
+  if(!name){msg.textContent='Enter your username';return;}
+  if(code.length<4){msg.textContent='Enter your team code';return;}
+  msg.style.color='var(--muted)';msg.textContent='Checking…';
+  let rec=null;
+  try{
+    const res=await fetch('/api/team?team='+encodeURIComponent(code)+'&name='+encodeURIComponent(name)+'&check=1');
+    if(res.ok)rec=await res.json();
+  }catch(e){}
+  msg.style.color='var(--fail)';
+  if(!rec||!rec.exists){
+    msg.textContent='No profile found for that name + team code. Tap "Create a new profile" if this is your first time.';
     return;
   }
-  // pick active (or first) and require PIN if set
-  const start=activeProfile()||reg.profiles[0];
-  reg.active=start.id;
-  openProfile(start,true);
+  // profile exists in cloud → ask PIN, verify against stored hash
+  loginTarget={name,code,pinHash:rec.pinHash||''};
+  hideLogin();
+  promptLoginPin();
+}
+let loginTarget=null;
+function promptLoginPin(){
+  pinBuf='';pinState={mode:'login',expect:loginTarget.pinHash,team:loginTarget.code,name:loginTarget.name};
+  $('lockTitle').textContent='Enter PIN';
+  $('lockDesc').textContent='Welcome back, '+loginTarget.name;
+  $('lockSwitch').style.display='none';
+  const cancelKey=document.querySelector('#lockPad [data-k="cancel"]');
+  if(cancelKey)cancelKey.style.visibility='';
+  showLock();paintDots();
+}
+// after a correct login PIN: pull the cloud profile into a local profile and open it
+async function loginRestore(name,code){
+  // find or create a local profile shell for this identity
+  let prof=reg.profiles.find(p=>p.name&&p.name.toLowerCase()===name.toLowerCase()
+    && reg.data[p.id] && (reg.data[p.id].teamCode||'').toLowerCase()===code.toLowerCase());
+  if(!prof){
+    const id='p'+Date.now()+Math.floor(Math.random()*99);
+    const avatar=AVATARS[reg.profiles.length%AVATARS.length];
+    prof={id,name,role:'member',pin:'',avatar};
+    reg.profiles.push(prof);
+    reg.data[id]=normProfile({role:'member',name,teamCode:code});
+    reg.active=id;
+  }
+  reg.active=prof.id;
+  state=normProfile(reg.data[prof.id]);
+  await saveReg();
+  const restored=await cloudRestore(prof);
+  // role/name come from restored data
+  prof.role=state.role||prof.role;prof.name=name;
+  await saveReg();
+  hideLock();
+  render();fetchRate();
+  if(state.role!=='member'&&state.teamCode)fetchTeam();
 }
 
 // load a profile's data into `state`, gated by PIN
@@ -709,7 +828,7 @@ function createProfile(first){
     });
 }
 
-function finishNewProfile(name,role,st,done){
+async function finishNewProfile(name,role,st,done){
   const id='p'+Date.now()+Math.floor(Math.random()*99);
   const avatar=AVATARS[reg.profiles.length%AVATARS.length];
   const prof={id,name,role,pin:'',avatar};
@@ -717,17 +836,20 @@ function finishNewProfile(name,role,st,done){
   saveReg();hideLock();
   if(done)done();
   render();
-  // if this person already has data on another device, pull it in
-  if(st.teamCode){
-    cloudRestore(prof).then(restored=>{
-      if(restored){render();if(state.role!=='member'&&state.teamCode)fetchTeam();
-        toast('Restored your data from another device \u2713');}
-    });
-  }
-  // require a PIN — no skip. Call directly (delayed so any closing modal clears first).
-  pendingAfterModal=null;
   closeModal();
-  setTimeout(()=>setNewPin(prof,true),120);
+  // if this person already has a profile in the cloud, restore it BEFORE asking for a PIN
+  let restored=false;
+  if(st.teamCode){
+    try{restored=await cloudRestore(prof);}catch(e){}
+    if(restored){
+      render();
+      if(state.role!=='member'&&state.teamCode)fetchTeam();
+      toast('Welcome back — your data was restored \u2713');
+    }
+  }
+  // require a PIN for THIS device — no skip
+  pendingAfterModal=null;
+  setTimeout(()=>setNewPin(prof,true),restored?600:120);
 }
 
 // ---- PIN pad ----
@@ -755,6 +877,7 @@ function paintDots(err){
 }
 function pinKey(k){
   if(k==='cancel'){
+    if(pinState&&pinState.mode==='login'){pinState=null;hideLock();showLogin();return;}
     if(pinState&&pinState.mode==='set'&&pinState.mandatory)return; // can't skip a mandatory PIN
     if(pinState&&pinState.mode==='set'&&pinState.fromMenu){hideLock();openMenu();return;}
     if(pinState&&pinState.mode==='check'&&!pinState.initial){hideLock();return;}
@@ -768,6 +891,23 @@ function pinKey(k){
   if(pinBuf.length===4)setTimeout(submitPin,120);
 }
 function submitPin(){
+  if(pinState.mode==='login'){
+    const entered=pinBuf;
+    hashPin(entered,pinState.team,pinState.name).then(h=>{
+      if(!pinState.expect || h===pinState.expect){
+        // correct (or no hash stored yet → accept and set it on next backup)
+        const nm=pinState.name,code=pinState.team;pinState=null;
+        loginRestore(nm,code).then(()=>{
+          // ensure this device's local pin matches what they typed, and hash is stored
+          const prof=activeProfile();
+          if(prof){prof.pin=entered;saveReg();cloudBackupWithPin(entered);}
+        });
+      }else{
+        paintDots(true);pinBuf='';setTimeout(()=>paintDots(),400);
+      }
+    });
+    return;
+  }
   if(pinState.mode==='check'){
     if(pinBuf===pinState.expect){const cb=pinState.onOk;pinState=null;cb();}
     else{paintDots(true);pinBuf='';setTimeout(()=>paintDots(),400);}
@@ -785,11 +925,14 @@ function submitPin(){
       const live=reg.profiles.find(x=>x.id===targetId)||pinState.prof;
       live.pin=pinBuf;
       if(pinState.prof)pinState.prof.pin=pinBuf; // keep the passed ref in agreement too
+      const setPin=pinBuf;
       saveReg();
       const back=pinState.fromMenu;pinState=null;hideLock();
       const cancelKey=document.querySelector('#lockPad [data-k="cancel"]');
       if(cancelKey)cancelKey.style.visibility='';
       toast('PIN set 🔒');
+      // store the hashed PIN in the cloud so this identity can log in from any device
+      cloudBackupWithPin(setPin);
       if(back)render();
     }else{
       paintDots(true);pinBuf='';pinState.phase=1;pinState.first='';
@@ -1181,6 +1324,9 @@ bindModalButtons();
 $('overlay').addEventListener('click',e=>{if(e.target.id==='overlay'&&!cancelCb)closeModal();});
 $('mInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('mOk'))$('mOk').click();});
 $('cloudBtn').addEventListener('click',cloudSyncNow);
+$('loginBtn').addEventListener('click',doLogin);
+$('loginCode').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+$('loginCreate').addEventListener('click',()=>{hideLogin();createProfile(true);});
 $('profBtn').addEventListener('click',openMenu);
 
 $('addBtn').addEventListener('click',()=>{

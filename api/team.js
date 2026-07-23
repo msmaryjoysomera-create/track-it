@@ -1,10 +1,11 @@
-// Track It — team mailbox + per-person profile sync
+// Track It — team mailbox + per-person profile sync + login
 // Actions (POST body.action):
-//   'counts'  : a member pushes daily counts  { team, name, days }        (team roster)
-//   'backup'  : any profile pushes its full state { team, name, blob }     (cross-device)
+//   'counts'  : a member pushes daily counts   { team, name, days }
+//   'backup'  : push full state + pin hash      { team, name, blob, pinHash }
 // GET:
-//   ?team=CODE                : returns { reports } roster of member counts
-//   ?team=CODE&name=NAME       : returns { blob } that person's saved state (or null)
+//   ?team=CODE                    : { reports } roster of member counts
+//   ?team=CODE&name=NAME          : { blob, updated, pinHash, exists } that person's saved profile
+//   ?team=CODE&name=NAME&check=1  : { exists, pinHash } lightweight login lookup (no blob)
 import { put, list } from '@vercel/blob';
 
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 40);
@@ -65,7 +66,12 @@ export default async function handler(req, res) {
         if (typeof blob !== 'string' || blob.length > 2000000) {
           return res.status(400).json({ error: 'bad blob' });
         }
-        await writeJSON(profKey(team, name), { blob, updated: Date.now() });
+        // preserve existing pinHash if this push doesn't include one
+        const existing = await readJSON(profKey(team, name));
+        const pinHash = (typeof body.pinHash === 'string' && body.pinHash)
+          ? body.pinHash
+          : (existing && existing.pinHash) || '';
+        await writeJSON(profKey(team, name), { blob, pinHash, updated: Date.now() });
         return res.json({ ok: true });
       }
 
@@ -77,7 +83,15 @@ export default async function handler(req, res) {
       if (!team || String(team).length < 4) return res.status(400).json({ error: 'bad request' });
       if (req.query.name) {
         const rec = await readJSON(profKey(team, req.query.name));
-        return res.json({ blob: rec ? rec.blob : null, updated: rec ? rec.updated : 0 });
+        if (req.query.check) {
+          return res.json({ exists: !!rec, pinHash: rec ? (rec.pinHash || '') : '' });
+        }
+        return res.json({
+          blob: rec ? rec.blob : null,
+          updated: rec ? rec.updated : 0,
+          pinHash: rec ? (rec.pinHash || '') : '',
+          exists: !!rec,
+        });
       }
       const data = (await readJSON(rosterKey(team))) || { reports: {} };
       return res.json(data);
