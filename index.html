@@ -780,7 +780,12 @@ function submitPin(){
     paintDots();
   }else{
     if(pinBuf===pinState.first){
-      pinState.prof.pin=pinBuf;saveReg();
+      // write PIN to the LIVE profile record by id (sync may have replaced the object)
+      const targetId=pinState.prof&&pinState.prof.id;
+      const live=reg.profiles.find(x=>x.id===targetId)||pinState.prof;
+      live.pin=pinBuf;
+      if(pinState.prof)pinState.prof.pin=pinBuf; // keep the passed ref in agreement too
+      saveReg();
       const back=pinState.fromMenu;pinState=null;hideLock();
       const cancelKey=document.querySelector('#lockPad [data-k="cancel"]');
       if(cancelKey)cancelKey.style.visibility='';
