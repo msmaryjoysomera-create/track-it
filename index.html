@@ -196,8 +196,15 @@
     border:1px solid var(--line);color:var(--pass);font-family:var(--mono);font-size:13px;padding:10px 18px;border-radius:99px;
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;font-weight:600}
   .toast.show{opacity:1}
-  .more{width:100%;background:var(--card);border:1px solid var(--line);color:var(--muted);border-radius:12px;
+  .more{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:12px;
     padding:11px;font-size:13px;cursor:pointer;font-family:var(--sans);margin-top:2px}
+  .more:active{background:var(--card-2)}
+  /* when the full log is expanded, cap its height and let it scroll */
+  .logscroll{max-height:340px;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding-right:4px;margin-right:-4px}
+  .logscroll::-webkit-scrollbar{width:6px}
+  .logscroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+  .logscroll::-webkit-scrollbar-track{background:transparent}
 
   /* modal */
   .overlay{position:fixed;inset:0;background:rgba(10,13,18,.97);display:none;align-items:center;
@@ -463,7 +470,46 @@ async function saveReg(){
   clearTimeout(regTimer);
   return new Promise(res=>{regTimer=setTimeout(async()=>{res(await store.set(PKEY,JSON.stringify(reg)));},250);});
 }
-function save(){saveReg();}
+// push the active profile's full state to the cloud (debounced), keyed by team code + name
+let cloudTimer=null;
+function cloudBackup(){
+  if(!state||!state.teamCode||!state.name)return;
+  clearTimeout(cloudTimer);
+  cloudTimer=setTimeout(async()=>{
+    try{
+      const payload={role:state.role,rate:state.rate,tcrate:state.tcrate,goal:state.goal,
+        pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,
+        teamCode:state.teamCode,team:state.team,songs:state.songs};
+      await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:Date.now(),data:payload})})});
+    }catch(e){/* offline — local save still holds */}
+  },1200);
+}
+function save(){saveReg();cloudBackup();}
+
+// pull this profile's cloud backup; if newer than local, restore it
+async function cloudRestore(prof){
+  const p=reg.data[prof.id];
+  if(!p||!p.teamCode||!prof.name)return false;
+  try{
+    const res=await fetch('/api/team?team='+encodeURIComponent(p.teamCode)+'&name='+encodeURIComponent(prof.name));
+    if(!res.ok)return false;
+    const j=await res.json();
+    if(!j||!j.blob)return false;
+    const parsed=JSON.parse(j.blob);
+    if(!parsed||!parsed.data)return false;
+    const localTs=p._syncTs||0;
+    if(parsed.ts>localTs){
+      const merged=normProfile(parsed.data);
+      merged.name=prof.name;merged.role=prof.role;merged._syncTs=parsed.ts;
+      reg.data[prof.id]=merged;
+      if(reg.active===prof.id)state=merged;
+      await saveReg();
+      return true;
+    }
+  }catch(e){/* offline */}
+  return false;
+}
 
 function activeProfile(){return reg.profiles.find(p=>p.id===reg.active);}
 
@@ -483,7 +529,7 @@ async function load(){
 
 // load a profile's data into `state`, gated by PIN
 function openProfile(prof,initial){
-  const enter=()=>{
+  const enter=async()=>{
     reg.active=prof.id;
     state=normProfile(reg.data[prof.id]||defaultState());
     // the profile record is authoritative for name & role
@@ -494,6 +540,9 @@ function openProfile(prof,initial){
     fetchRate();
     if(state.role!=='member'&&state.teamCode)fetchTeam();
     saveReg();
+    // pull any newer cloud backup for this profile, then re-render if restored
+    const restored=await cloudRestore(prof);
+    if(restored){render();if(state.role!=='member'&&state.teamCode)fetchTeam();}
   };
   if(prof.pin){
     promptPin('Enter PIN',prof.name+"'s tracker",prof.pin,enter,initial);
@@ -585,9 +634,15 @@ function finishNewProfile(name,role,st,done){
   const prof={id,name,role,pin:'',avatar};
   reg.profiles.push(prof);reg.data[id]=st;reg.active=id;state=st;
   saveReg();hideLock();
-  // open the follow-up modal FIRST, then render underneath it (modal covers the dashboard)
   if(done)done();
   render();
+  // if this person already has data on another device, pull it in
+  if(st.teamCode){
+    cloudRestore(prof).then(restored=>{
+      if(restored){render();if(state.role!=='member'&&state.teamCode)fetchTeam();
+        toast('Restored your data from another device \u2713');}
+    });
+  }
   // require a PIN — no skip
   pendingAfterModal=()=>setNewPin(prof,true);
 }
@@ -731,18 +786,6 @@ async function fetchRate(notify){
     else toast('Couldn\'t fetch rate — offline? Using saved rate','var(--muted)');
   }
 }
-let saveTimer=null,warnedSave=false;
-function save(){
-  clearTimeout(saveTimer);
-  saveTimer=setTimeout(async()=>{
-    const ok=await store.set(KEY,JSON.stringify(state));
-    if(!ok&&!warnedSave){
-      warnedSave=true;
-      toast('Heads up: changes won\'t persist in this view','var(--muted)');
-    }
-  },300);
-}
-
 function weekStart(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x;} // Monday
 // cutoff is the 23rd; pay period runs the 24th → 23rd. Return the start (most recent 24th).
 function periodStart(d){
@@ -865,30 +908,39 @@ function renderSongs(){
     return;
   }
   if(!openDays)openDays=new Set([todayStr()]);
+  // flatten to newest-first, then keep only the last 4 unless "show all"
+  const allSorted=state.songs.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  const LIMIT=4;
+  const limited=!showAll&&allSorted.length>LIMIT;
+  const shown=limited?allSorted.slice(0,LIMIT):allSorted;
+  // regroup the shown tracks by date (newest day first) so day headers still work
   const byDate={};
-  state.songs.forEach(x=>{(byDate[x.date]=byDate[x.date]||[]).push(x);});
-  let dates=Object.keys(byDate).sort().reverse();
-  const limited=!showAll&&dates.length>10;
-  if(limited)dates=dates.slice(0,10);
+  shown.forEach(x=>{(byDate[x.date]=byDate[x.date]||[]).push(x);});
+  const dates=Object.keys(byDate).sort().reverse();
   let html='';
+  html+='<div class="'+(showAll?'logscroll':'')+'">';
   dates.forEach(d=>{
     const rows=byDate[d].slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-    const isOpen=openDays.has(d);
+    // count the full day's total (not just shown) so the header total stays accurate
+    const dayTotal=state.songs.filter(s=>s.date===d).length;
+    const isOpen=showAll?openDays.has(d):true; // always expanded in the compact 4-track view
     const label=d===todayStr()?'Today':dOf(d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+rows.length+' track'+(rows.length===1?'':'s')+'</span><em>'+money(rows.length*state.rate)+'<span class="chev">▼</span></em></div>';
+    html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+dayTotal+' track'+(dayTotal===1?'':'s')+'</span><em>'+money(dayTotal*state.rate)+'<span class="chev">▼</span></em></div>';
     html+='<div class="day-group'+(isOpen?' open':'')+'">';
     rows.forEach((x,i)=>{
       const time=x.ts?new Date(x.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):dOf(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-      html+='<div class="song"><span class="idx">'+String(rows.length-i).padStart(2,'0')+'</span>'
+      html+='<div class="song"><span class="idx">'+String(dayTotal-i).padStart(2,'0')+'</span>'
         +'<div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+time+'</div>':'')+'</div>'
         +'<button class="del" data-del="'+x.id+'" aria-label="Delete">✕</button></div>';
     });
     html+='</div>';
   });
-  if(limited)html+='<button class="more" id="moreBtn">Show older days</button>';
+  html+='</div>';
+  if(limited)html+='<button class="more" id="moreBtn">Show more ('+(allSorted.length-LIMIT)+' more)</button>';
+  else if(allSorted.length>LIMIT)html+='<button class="more" id="moreBtn">Show less</button>';
   list.innerHTML=html;
   const mb=$('moreBtn');
-  if(mb)mb.addEventListener('click',()=>{showAll=true;renderSongs();});
+  if(mb)mb.addEventListener('click',()=>{showAll=!showAll;renderSongs();});
 }
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
