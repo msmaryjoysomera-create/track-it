@@ -409,7 +409,7 @@
 
 <script>
 const KEY='__disabled__';                    // legacy migration off — starting fresh
-const PKEY='trackit-profiles-v4';            // profile registry + per-profile data (v4 = fresh start after PIN fix)
+const PKEY='trackit-profiles-v5';            // profile registry + per-profile data (v5 = fresh start, PIN-by-id fix)
 const defaultState=()=>({role:null,name:'',rate:0,tcrate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,
   teamCode:'',team:{reports:{},paid:{}},songs:[]});
 let state=defaultState();
