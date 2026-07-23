@@ -408,7 +408,7 @@
 
 <script>
 const KEY='__disabled__';                    // legacy migration off — starting fresh
-const PKEY='trackit-profiles-v3';            // profile registry + per-profile data (v3 = fresh start)
+const PKEY='trackit-profiles-v4';            // profile registry + per-profile data (v4 = fresh start after PIN fix)
 const defaultState=()=>({role:null,name:'',rate:0,tcrate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,
   teamCode:'',team:{reports:{},paid:{}},songs:[]});
 let state=defaultState();
@@ -648,8 +648,10 @@ function finishNewProfile(name,role,st,done){
         toast('Restored your data from another device \u2713');}
     });
   }
-  // require a PIN — no skip
-  pendingAfterModal=()=>setNewPin(prof,true);
+  // require a PIN — no skip. Call directly (delayed so any closing modal clears first).
+  pendingAfterModal=null;
+  closeModal();
+  setTimeout(()=>setNewPin(prof,true),120);
 }
 
 // ---- PIN pad ----
