@@ -478,11 +478,19 @@ function cloudBackup(){
   clearTimeout(cloudTimer);
   cloudTimer=setTimeout(async()=>{
     try{
+      const now=Date.now();
       const payload={role:state.role,rate:state.rate,tcrate:state.tcrate,goal:state.goal,
         pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,
         teamCode:state.teamCode,team:state.team,songs:state.songs};
-      await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:Date.now(),data:payload})})});
+      const r=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:now,data:payload})})});
+      if(r.ok){
+        // record that THIS device is now current as of `now`
+        state._syncTs=now;
+        const prof=activeProfile();
+        if(prof&&reg.data[prof.id]){reg.data[prof.id]._syncTs=now;}
+        saveReg();
+      }
     }catch(e){/* offline — local save still holds */}
   },1200);
 }
@@ -497,7 +505,7 @@ async function cloudSyncNow(){
   toast('Syncing…','var(--muted)');
   try{
     const prof=activeProfile();
-    const localTs=(prof&&reg.data[prof.id]&&reg.data[prof.id]._syncTs)||state._localTs||0;
+    const localTs=(prof&&reg.data[prof.id]&&reg.data[prof.id]._syncTs)||state._syncTs||0;
     // 1) pull cloud copy
     const res=await fetch('/api/team?team='+encodeURIComponent(state.teamCode)+'&name='+encodeURIComponent(state.name));
     let cloudTs=0,cloudData=null;
@@ -505,7 +513,7 @@ async function cloudSyncNow(){
     if(cloudData&&cloudTs>localTs){
       // cloud is newer → adopt it
       const merged=normProfile(cloudData);
-      merged.name=state.name;merged.role=state.role;merged._syncTs=cloudTs;merged._localTs=cloudTs;
+      merged.name=state.name;merged.role=state.role;merged._syncTs=cloudTs;
       state=merged;
       if(prof)reg.data[prof.id]=merged;
       await saveReg();
@@ -520,7 +528,7 @@ async function cloudSyncNow(){
         teamCode:state.teamCode,team:state.team,songs:state.songs};
       await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:now,data:payload})})});
-      state._localTs=now;if(prof){reg.data[prof.id]._syncTs=now;reg.data[prof.id]._localTs=now;}
+      state._syncTs=now;if(prof&&reg.data[prof.id]){reg.data[prof.id]._syncTs=now;}
       await saveReg();
       if(state.role!=='member')await fetchTeam(false);
       render();
