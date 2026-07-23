@@ -612,9 +612,14 @@ function createProfile(first){
     'I\'m Jun (lead)','I\'m a team member',
     ()=>{ // lead
       if(reg.profiles.some(p=>p.role==='lead')){toast('A lead profile already exists','var(--muted)');return;}
-      const st=defaultState();st.role='lead';st.name='Jun';st.rate=3.13;
-      st.teamCode=genTeamCode();
-      finishNewProfile('Jun','lead',st);
+      const askCode2=()=>askText('Create your team code','Make up a team code (at least 4 characters) — e.g. beatpulse2026. You\'ll give this same code to each team member so their counts sync to you.','',c=>{
+        const code=c.trim().toLowerCase();
+        if(code.length<4){toast('Code needs at least 4 characters','var(--muted)');setTimeout(askCode2,400);return;}
+        const st=defaultState();st.role='lead';st.name='Jun';st.rate=3.13;
+        st.teamCode=code;
+        finishNewProfile('Jun','lead',st);
+      });
+      askCode2();
     },
     ()=>{ // member
       askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.','',v=>{
@@ -895,8 +900,16 @@ function renderTeam(){
   });
   const cb2=$('codeBtn');
   if(cb2)cb2.addEventListener('click',()=>{
-    if(!state.teamCode){state.teamCode=genTeamCode();save();render();}
-    showCode(state.teamCode,'Your team code','Share this once with each colleague — they enter it during setup and their counts sync automatically.');
+    if(!state.teamCode){
+      askText('Create your team code','Make up a team code (at least 4 characters). Give this same code to each team member.','',c=>{
+        const code=c.trim().toLowerCase();
+        if(code.length<4){toast('Code needs at least 4 characters','var(--muted)');return;}
+        state.teamCode=code;save();render();
+        showCode(state.teamCode,'Your team code','Share this with each colleague — they enter it during setup and their counts sync automatically.');
+      });
+      return;
+    }
+    showCode(state.teamCode,'Your team code','Share this with each colleague — they enter it during setup and their counts sync automatically.');
   });
 }
 
