@@ -486,21 +486,21 @@ function cloudBackup(){
         body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:now,data:payload})})});
       if(r.ok){
         // record that THIS device is now current as of `now`
-        state._syncTs=now;
+        state._syncTs=now;state._dirty=false;
         const prof=activeProfile();
-        if(prof&&reg.data[prof.id]){reg.data[prof.id]._syncTs=now;}
+        if(prof&&reg.data[prof.id]){reg.data[prof.id]._syncTs=now;reg.data[prof.id]._dirty=false;}
         saveReg();
       }
     }catch(e){/* offline — local save still holds */}
   },1200);
 }
-// Local save only. Cross-device sync is handled explicitly by the ☁ Sync button.
+// Local save + automatic cloud push (debounced). Sync is automatic.
 function save(){
-  // flag this profile as having local changes since last sync
   const prof=activeProfile();
   if(prof&&reg.data[prof.id])reg.data[prof.id]._dirty=true;
   if(state)state._dirty=true;
   saveReg();
+  cloudBackup();
 }
 
 // manual "Sync now": pull the cloud copy; if it's newer, adopt it; if local is newer, push it.
@@ -573,9 +573,11 @@ async function cloudRestore(prof){
     const parsed=JSON.parse(j.blob);
     if(!parsed||!parsed.data)return false;
     const localTs=p._syncTs||0;
-    if(parsed.ts>localTs){
+    // adopt cloud only if it's newer than what we last synced AND we don't have
+    // fresh unsynced local edits (those will auto-push instead, avoiding clobber)
+    if(parsed.ts>localTs && !p._dirty){
       const merged=normProfile(parsed.data);
-      merged.name=prof.name;merged.role=prof.role;merged._syncTs=parsed.ts;
+      merged.name=prof.name;merged.role=prof.role;merged._syncTs=parsed.ts;merged._dirty=false;
       reg.data[prof.id]=merged;
       if(reg.active===prof.id)state=merged;
       await saveReg();
@@ -614,6 +616,9 @@ function openProfile(prof,initial){
     fetchRate();
     if(state.role!=='member'&&state.teamCode)fetchTeam();
     saveReg();
+    // auto-pull: adopt cloud data if it's genuinely newer than what this device last saw
+    const restored=await cloudRestore(prof);
+    if(restored){render();if(state.role!=='member'&&state.teamCode)fetchTeam();}
   };
   if(prof.pin){
     promptPin('Enter PIN',prof.name+"'s tracker",prof.pin,enter,initial);
