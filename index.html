@@ -83,6 +83,11 @@
   .login-link{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;
     text-decoration:underline;font-family:var(--sans);padding:8px;margin-top:6px}
   .login-link:active{color:var(--text)}
+  .loading{position:fixed;inset:0;background:var(--bg);z-index:120;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:16px}
+  .loading.show{display:flex}
+  .loading .eq{transform:scale(1.2)}
+  .loading p{font-size:13px;color:var(--muted);font-family:var(--mono);letter-spacing:.04em}
   .lock h2{font-size:18px;font-weight:700;margin-bottom:4px;text-align:center}
   .lock p{font-size:13px;color:var(--muted);margin-bottom:22px;text-align:center;min-height:18px}
   .dots{display:flex;gap:14px;margin-bottom:26px}
@@ -327,6 +332,11 @@
     <div class="login-msg" id="loginMsg"></div>
     <button class="login-link" id="loginCreate">Create a new profile</button>
   </div>
+</div>
+
+<div class="loading" id="loading">
+  <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <p id="loadingMsg">Checking…</p>
 </div>
 
 <header>
@@ -637,8 +647,14 @@ async function cloudRestore(prof){
     // fresh unsynced local edits (those will auto-push instead, avoiding clobber)
     if(parsed.ts>localTs && !p._dirty){
       const merged=normProfile(parsed.data);
-      merged.name=prof.name;merged.role=prof.role;merged._syncTs=parsed.ts;merged._dirty=false;
+      merged.name=prof.name;
+      // keep the role FROM the cloud data (parsed.data.role); only fall back to the
+      // local profile's role if the cloud copy somehow lacks one
+      merged.role=parsed.data.role||prof.role;
+      merged._syncTs=parsed.ts;merged._dirty=false;
       reg.data[prof.id]=merged;
+      // keep the profile record's role in sync too, so the dashboard renders correctly
+      prof.role=merged.role;
       if(reg.active===prof.id)state=merged;
       await saveReg();
       return true;
@@ -672,11 +688,13 @@ async function doLogin(){
   if(!name){msg.textContent='Enter your username';return;}
   if(code.length<4){msg.textContent='Enter your team code';return;}
   msg.style.color='var(--muted)';msg.textContent='Checking…';
+  showLoading('Logging in…');
   let rec=null;
   try{
     const res=await fetch('/api/team?team='+encodeURIComponent(code)+'&name='+encodeURIComponent(name)+'&check=1');
     if(res.ok)rec=await res.json();
   }catch(e){}
+  hideLoading();
   msg.style.color='var(--fail)';
   if(!rec||!rec.exists){
     msg.textContent='No profile found for that name + team code. Tap "Create a new profile" if this is your first time.';
@@ -713,7 +731,9 @@ async function loginRestore(name,code){
   reg.active=prof.id;
   state=normProfile(reg.data[prof.id]);
   await saveReg();
+  showLoading('Loading your data…');
   const restored=await cloudRestore(prof);
+  hideLoading();
   // role/name come from restored data
   prof.role=state.role||prof.role;prof.name=name;
   await saveReg();
@@ -840,7 +860,9 @@ async function finishNewProfile(name,role,st,done){
   // if this person already has a profile in the cloud, restore it BEFORE asking for a PIN
   let restored=false;
   if(st.teamCode){
+    showLoading('Setting up…');
     try{restored=await cloudRestore(prof);}catch(e){}
+    hideLoading();
     if(restored){
       render();
       if(state.role!=='member'&&state.teamCode)fetchTeam();
@@ -849,8 +871,10 @@ async function finishNewProfile(name,role,st,done){
   }
   // require a PIN for THIS device — no skip
   pendingAfterModal=null;
-  setTimeout(()=>setNewPin(prof,true),restored?600:120);
+  setTimeout(()=>setNewPin(prof,true),restored?400:120);
 }
+function showLoading(msg){$('loadingMsg').textContent=msg||'Loading…';$('loading').classList.add('show');}
+function hideLoading(){$('loading').classList.remove('show');}
 
 // ---- PIN pad ----
 let pinBuf='',pinState=null; // pinState:{expect,onOk,initial,setPhase,firstPin}
