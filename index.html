@@ -301,6 +301,7 @@
     <h1>Track It</h1>
     <small id="subTitle">annotation log</small>
   </div>
+  <button class="prof-btn" id="cloudBtn" aria-label="Sync now" title="Sync now">☁</button>
   <button class="prof-btn" id="profBtn" aria-label="Switch profile">⚙</button>
   <button class="rate-btn" id="rateBtn">$3.13/QA</button>
 </header>
@@ -486,6 +487,48 @@ function cloudBackup(){
   },1200);
 }
 function save(){saveReg();cloudBackup();}
+
+// manual "Sync now": pull the cloud copy; if it's newer, adopt it; if local is newer, push it.
+let syncingNow=false;
+async function cloudSyncNow(){
+  if(syncingNow)return;
+  if(!state||!state.teamCode||!state.name){toast('Set a team code first','var(--muted)');return;}
+  syncingNow=true;
+  toast('Syncing…','var(--muted)');
+  try{
+    const prof=activeProfile();
+    const localTs=(prof&&reg.data[prof.id]&&reg.data[prof.id]._syncTs)||state._localTs||0;
+    // 1) pull cloud copy
+    const res=await fetch('/api/team?team='+encodeURIComponent(state.teamCode)+'&name='+encodeURIComponent(state.name));
+    let cloudTs=0,cloudData=null;
+    if(res.ok){const j=await res.json();if(j&&j.blob){const parsed=JSON.parse(j.blob);if(parsed&&parsed.data){cloudTs=parsed.ts;cloudData=parsed.data;}}}
+    if(cloudData&&cloudTs>localTs){
+      // cloud is newer → adopt it
+      const merged=normProfile(cloudData);
+      merged.name=state.name;merged.role=state.role;merged._syncTs=cloudTs;merged._localTs=cloudTs;
+      state=merged;
+      if(prof)reg.data[prof.id]=merged;
+      await saveReg();
+      if(state.role!=='member')await fetchTeam(false);
+      render();
+      toast('Updated from cloud \u2713');
+    }else{
+      // local is newer (or same) → push it up
+      const now=Date.now();
+      const payload={role:state.role,rate:state.rate,tcrate:state.tcrate,goal:state.goal,
+        pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,
+        teamCode:state.teamCode,team:state.team,songs:state.songs};
+      await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:now,data:payload})})});
+      state._localTs=now;if(prof){reg.data[prof.id]._syncTs=now;reg.data[prof.id]._localTs=now;}
+      await saveReg();
+      if(state.role!=='member')await fetchTeam(false);
+      render();
+      toast('Synced \u2713');
+    }
+  }catch(e){toast('Sync failed — check connection','var(--muted)');}
+  syncingNow=false;
+}
 
 // pull this profile's cloud backup; if newer than local, restore it
 async function cloudRestore(prof){
@@ -1099,6 +1142,7 @@ function bindModalButtons(){
 bindModalButtons();
 $('overlay').addEventListener('click',e=>{if(e.target.id==='overlay'&&!cancelCb)closeModal();});
 $('mInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('mOk'))$('mOk').click();});
+$('cloudBtn').addEventListener('click',cloudSyncNow);
 $('profBtn').addEventListener('click',openMenu);
 
 $('addBtn').addEventListener('click',()=>{
