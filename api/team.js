@@ -84,7 +84,9 @@ export default async function handler(req, res) {
       if (req.query.name) {
         const rec = await readJSON(profKey(team, req.query.name));
         if (req.query.check) {
-          return res.json({ exists: !!rec, pinHash: rec ? (rec.pinHash || '') : '' });
+          let role = '';
+          if (rec && rec.blob) { try { const b = JSON.parse(rec.blob); role = (b.data && b.data.role) || ''; } catch (e) {} }
+          return res.json({ exists: !!rec, pinHash: rec ? (rec.pinHash || '') : '', role });
         }
         return res.json({
           blob: rec ? rec.blob : null,

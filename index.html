@@ -701,7 +701,7 @@ async function doLogin(){
     return;
   }
   // profile exists in cloud → ask PIN, verify against stored hash
-  loginTarget={name,code,pinHash:rec.pinHash||''};
+  loginTarget={name,code,pinHash:rec.pinHash||'',role:rec.role||'member'};
   hideLogin();
   promptLoginPin();
 }
@@ -717,16 +717,20 @@ function promptLoginPin(){
 }
 // after a correct login PIN: pull the cloud profile into a local profile and open it
 async function loginRestore(name,code){
+  const knownRole=(loginTarget&&loginTarget.role)||'member';
   // find or create a local profile shell for this identity
   let prof=reg.profiles.find(p=>p.name&&p.name.toLowerCase()===name.toLowerCase()
     && reg.data[p.id] && (reg.data[p.id].teamCode||'').toLowerCase()===code.toLowerCase());
   if(!prof){
     const id='p'+Date.now()+Math.floor(Math.random()*99);
     const avatar=AVATARS[reg.profiles.length%AVATARS.length];
-    prof={id,name,role:'member',pin:'',avatar};
+    prof={id,name,role:knownRole,pin:'',avatar};
     reg.profiles.push(prof);
-    reg.data[id]=normProfile({role:'member',name,teamCode:code});
+    reg.data[id]=normProfile({role:knownRole,name,teamCode:code});
     reg.active=id;
+  }else{
+    prof.role=knownRole;
+    if(reg.data[prof.id])reg.data[prof.id].role=knownRole;
   }
   reg.active=prof.id;
   state=normProfile(reg.data[prof.id]);
@@ -734,8 +738,8 @@ async function loginRestore(name,code){
   showLoading('Loading your data…');
   const restored=await cloudRestore(prof);
   hideLoading();
-  // role/name come from restored data
-  prof.role=state.role||prof.role;prof.name=name;
+  // role/name come from restored data (or the known role from login)
+  prof.role=state.role||knownRole;prof.name=name;
   await saveReg();
   hideLock();
   render();fetchRate();
