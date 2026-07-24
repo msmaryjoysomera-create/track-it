@@ -543,26 +543,42 @@ async function cloudBackupWithPin(pin){
     if(r.ok){state._syncTs=now;state._dirty=false;const prof=activeProfile();if(prof&&reg.data[prof.id]){reg.data[prof.id]._syncTs=now;reg.data[prof.id]._dirty=false;}saveReg();}
   }catch(e){}
 }
+let cloudPushing=false, cloudPendingAgain=false;
 function cloudBackup(){
   if(!state||!state.teamCode||!state.name)return;
   clearTimeout(cloudTimer);
-  cloudTimer=setTimeout(async()=>{
-    try{
-      const now=Date.now();
-      const payload={role:state.role,rate:state.rate,tcrate:state.tcrate,goal:state.goal,
-        pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,
-        teamCode:state.teamCode,team:state.team,songs:state.songs};
-      const r=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:now,data:payload})})});
-      if(r.ok){
-        // record that THIS device is now current as of `now`
-        state._syncTs=now;state._dirty=false;
-        const prof=activeProfile();
+  cloudTimer=setTimeout(runCloudPush,500);
+}
+async function runCloudPush(){
+  if(!state||!state.teamCode||!state.name)return;
+  if(cloudPushing){cloudPendingAgain=true;return;} // a push is in flight; queue another
+  cloudPushing=true;
+  try{
+    // snapshot exactly what we're sending
+    const snapshot=JSON.stringify(state.songs)+'|'+state.pending+'|'+state.failed+'|'+state.returned;
+    const now=Date.now();
+    const payload={role:state.role,rate:state.rate,tcrate:state.tcrate,goal:state.goal,
+      pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,
+      teamCode:state.teamCode,team:state.team,songs:state.songs};
+    const r=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'backup',team:state.teamCode,name:state.name,blob:JSON.stringify({ts:now,data:payload})})});
+    if(r.ok){
+      // only clear dirty if nothing changed while we were uploading
+      const after=JSON.stringify(state.songs)+'|'+state.pending+'|'+state.failed+'|'+state.returned;
+      state._syncTs=now;
+      const prof=activeProfile();
+      if(after===snapshot){
+        state._dirty=false;
         if(prof&&reg.data[prof.id]){reg.data[prof.id]._syncTs=now;reg.data[prof.id]._dirty=false;}
-        saveReg();
+      }else{
+        cloudPendingAgain=true; // data changed mid-upload → push again
+        if(prof&&reg.data[prof.id]){reg.data[prof.id]._syncTs=now;}
       }
-    }catch(e){/* offline — local save still holds */}
-  },1200);
+      saveReg();
+    }
+  }catch(e){/* offline — local save holds */}
+  cloudPushing=false;
+  if(cloudPendingAgain){cloudPendingAgain=false;runCloudPush();} // flush queued changes
 }
 // Local save + automatic cloud push (debounced). Sync is automatic.
 function save(){
