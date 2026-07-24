@@ -601,10 +601,14 @@ async function cloudSyncNow(){
     const rec=prof?reg.data[prof.id]:null;
     const baseTs=(rec&&rec._syncTs)||0;          // cloud ts this device last synced with
     const dirty=!!(rec&&rec._dirty);              // have we changed anything since then?
-    // pull cloud copy
-    const res=await fetch('/api/team?team='+encodeURIComponent(state.teamCode)+'&name='+encodeURIComponent(state.name));
+    // pull cloud copy (cache-bust; retry once in case blob listing is briefly stale)
     let cloudTs=0,cloudData=null;
-    if(res.ok){const j=await res.json();if(j&&j.blob){const parsed=JSON.parse(j.blob);if(parsed&&parsed.data){cloudTs=parsed.ts;cloudData=parsed.data;}}}
+    for(let attempt=0;attempt<2;attempt++){
+      const res=await fetch('/api/team?team='+encodeURIComponent(state.teamCode)+'&name='+encodeURIComponent(state.name)+'&_='+Date.now());
+      if(res.ok){const j=await res.json();if(j&&j.blob){const parsed=JSON.parse(j.blob);if(parsed&&parsed.data){cloudTs=parsed.ts;cloudData=parsed.data;}}}
+      if(cloudData&&cloudTs>baseTs)break;      // got something newer → good
+      if(attempt===0)await new Promise(r=>setTimeout(r,700)); // brief wait, then retry once
+    }
     const cloudNewer=cloudData&&cloudTs>baseTs;
 
     const pushLocal=async()=>{
@@ -652,7 +656,7 @@ async function cloudRestore(prof){
   const p=reg.data[prof.id];
   if(!p||!p.teamCode||!prof.name)return false;
   try{
-    const res=await fetch('/api/team?team='+encodeURIComponent(p.teamCode)+'&name='+encodeURIComponent(prof.name));
+    const res=await fetch('/api/team?team='+encodeURIComponent(p.teamCode)+'&name='+encodeURIComponent(prof.name)+'&_='+Date.now());
     if(!res.ok)return false;
     const j=await res.json();
     if(!j||!j.blob)return false;
