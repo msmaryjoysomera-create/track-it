@@ -36,6 +36,14 @@ async function sbGet(table, id) {
   const rows = await r.json();
   return (rows && rows[0]) || null;
 }
+// delete a row by id (idempotent — no error if it doesn't exist)
+async function sbDelete(table, id) {
+  const r = await fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + encodeURIComponent(id), {
+    method: 'DELETE',
+    headers: sbHeaders(),
+  });
+  if (!r.ok) throw new Error('sb delete ' + r.status + ' ' + (await r.text()));
+}
 
 const rosterId = team => 'roster:' + slug(team);
 const profId = (team, name) => 'prof:' + slug(team) + ':' + slug(name);
@@ -81,6 +89,13 @@ export default async function handler(req, res) {
           ? body.pinHash
           : (existing && existing.pinhash) || '';
         await sbUpsert('profiles', { id: profId(team, name), blob, pinhash: pinHash, updated: Date.now() });
+        return res.json({ ok: true });
+      }
+
+      if (action === 'delete') {
+        // removes only this person's own profile record; team roster counts (Jun's
+        // payment records) are untouched, since those belong to Jun, not this profile
+        await sbDelete('profiles', profId(team, name));
         return res.json({ ok: true });
       }
 

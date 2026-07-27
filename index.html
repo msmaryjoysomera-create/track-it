@@ -682,6 +682,15 @@ async function cloudRestore(prof){
   }catch(e){/* offline */}
   return false;
 }
+// remove this person's cloud profile record (their own data only — not Jun's roster)
+async function cloudDeleteProfile(team,name){
+  if(!team||!name)return true;
+  try{
+    const r=await fetch('/api/team',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action:'delete',team,name})});
+    return r.ok;
+  }catch(e){return false;}
+}
 
 function activeProfile(){return reg.profiles.find(p=>p.id===reg.active);}
 
@@ -1017,6 +1026,10 @@ function openMenu(){
   openHtmlModal('Profiles','Tap a profile to open it. Manage the current one below.',html,[
     {label:'Set/Change PIN',cb:()=>{const p=activeProfile();if(p){pinState={};setNewPinFromMenu(p);}}},
     {label:'Rename current',cb:()=>{const p=activeProfile();if(p)askText('Rename profile','',p.name,v=>{if(v.trim()){p.name=v.trim().slice(0,20);if(state)state.name=p.name;saveReg();render();}});}},
+    {label:'Delete profile',danger:true,cb:()=>{
+      const p=activeProfile();if(!p)return;
+      askConfirm('Delete '+p.name+'\'s profile?','Removes it from this device and from the cloud. This can\'t be undone.',()=>deleteProfile(p));
+    }},
   ]);
   document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{
     const id=b.dataset.open;closeModal();
@@ -1031,6 +1044,29 @@ function setNewPinFromMenu(prof){
   $('lockDesc').textContent='Choose a 4-digit PIN for '+prof.name;
   $('lockSwitch').style.display='none';
   showLock();paintDots();
+}
+// delete a profile: wipe its cloud record, then remove it from this device
+async function deleteProfile(prof){
+  const data=reg.data[prof.id]||{};
+  const team=data.teamCode,name=prof.name;
+  closeModal();
+  showLoading('Deleting…');
+  const ok=await cloudDeleteProfile(team,name);
+  hideLoading();
+  delete reg.data[prof.id];
+  reg.profiles=reg.profiles.filter(p=>p.id!==prof.id);
+  const wasActive=reg.active===prof.id;
+  if(wasActive)reg.active=null;
+  await saveReg();
+  toast(ok?'Profile deleted':'Deleted on this device — cloud delete failed, try again when online','var(--muted)');
+  if(!wasActive)return;
+  if(reg.profiles.length){
+    showSwitcher();
+  }else{
+    state=defaultState();
+    render();
+    showLogin();
+  }
 }
 
 
@@ -1350,8 +1386,8 @@ function openHtmlModal(title,desc,html,actions){
   const c=$('mCustom');c.style.display='block';c.innerHTML=html;
   const btns=$('mBtns');btns.innerHTML='';
   (actions||[]).forEach(a=>{
-    const b=document.createElement('button');b.className='cancel';b.textContent=a.label;
-    b.addEventListener('click',()=>{a.cb();});btns.appendChild(b);
+    const b=document.createElement('button');b.className=a.danger?'ok danger':'cancel';b.textContent=a.label;
+    b.addEventListener('click',()=>{closeModal();a.cb();});btns.appendChild(b);
   });
   const close=document.createElement('button');close.className='ok';close.textContent='Close';
   close.addEventListener('click',closeModal);btns.appendChild(close);
