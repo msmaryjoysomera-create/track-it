@@ -106,16 +106,21 @@
 
   /* profile chooser */
   .profList{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px}
-  .profList button{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);
+  .profList .profOpen,.profList .add{display:flex;align-items:center;gap:12px;background:var(--bg);border:1px solid var(--line);
     border-radius:12px;padding:13px 14px;cursor:pointer;font-family:var(--sans);text-align:left;color:var(--text)}
-  .profList button:active{background:var(--card)}
+  .profList .profOpen:active,.profList .add:active{background:var(--card)}
   .profList .pav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
     font-weight:700;font-size:15px;flex-shrink:0;color:#0E1116}
   .profList .pinfo{flex:1;min-width:0}
   .profList .pinfo b{font-size:14.5px;font-weight:600}
   .profList .pinfo small{display:block;font-size:11px;color:var(--muted)}
-  .profList .plock{font-size:13px;color:var(--muted)}
+  .profList .plock{font-size:12px;color:var(--muted);margin-left:4px;font-weight:400}
   .profList .add{color:var(--gold);justify-content:center;font-weight:600;border-style:dashed}
+  .profRow{display:flex;gap:8px}
+  .profRow .profOpen{flex:1;min-width:0}
+  .profDel{flex-shrink:0;width:44px;border:1px solid var(--line);border-radius:12px;background:var(--bg);
+    color:var(--fail);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:var(--sans)}
+  .profDel:active{background:var(--fail-dim)}
 
   .eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
 
@@ -1018,24 +1023,27 @@ function openMenu(){
   let html='<div class="profList">';
   reg.profiles.forEach(p=>{
     const initial=(p.name||'?').charAt(0).toUpperCase();
-    html+='<button data-open="'+p.id+'"><span class="pav" style="background:'+p.avatar+'">'+esc(initial)+'</span>'
-      +'<span class="pinfo"><b>'+esc(p.name)+'</b><small>'+(p.role==='lead'?'Lead':'Team member')+(p.id===reg.active?' · current':'')+'</small></span>'
-      +'<span class="plock">'+(p.pin?'🔒':'🔓')+'</span></button>';
+    html+='<div class="profRow"><button class="profOpen" data-open="'+p.id+'"><span class="pav" style="background:'+p.avatar+'">'+esc(initial)+'</span>'
+      +'<span class="pinfo"><b>'+esc(p.name)+' <span class="plock">'+(p.pin?'🔒':'🔓')+'</span></b><small>'+(p.role==='lead'?'Lead':'Team member')+(p.id===reg.active?' · current':'')+'</small></span>'
+      +'</button><button class="profDel" data-del="'+p.id+'" aria-label="Delete '+esc(p.name)+'\'s profile">✕</button></div>';
   });
   html+='<button class="add" data-open="__new">+ Add profile</button></div>';
-  openHtmlModal('Profiles','Tap a profile to open it. Manage the current one below.',html,[
+  openHtmlModal('Profiles','Tap a profile to open it, or ✕ to delete it — no PIN needed. Manage the current one below.',html,[
     {label:'Set/Change PIN',cb:()=>{const p=activeProfile();if(p){pinState={};setNewPinFromMenu(p);}}},
     {label:'Rename current',cb:()=>{const p=activeProfile();if(p)askText('Rename profile','',p.name,v=>{if(v.trim()){p.name=v.trim().slice(0,20);if(state)state.name=p.name;saveReg();render();}});}},
-    {label:'Delete profile',danger:true,cb:()=>{
-      const p=activeProfile();if(!p)return;
-      askConfirm('Delete '+p.name+'\'s profile?','Removes it from this device and from the cloud. This can\'t be undone.',()=>deleteProfile(p));
-    }},
   ]);
   document.querySelectorAll('[data-open]').forEach(b=>b.addEventListener('click',()=>{
     const id=b.dataset.open;closeModal();
     if(id==='__new'){createProfile(false);return;}
     const prof=reg.profiles.find(x=>x.id===id);
     if(prof)openProfile(prof,false);
+  }));
+  document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();
+    const prof=reg.profiles.find(x=>x.id===b.dataset.del);
+    if(!prof)return;
+    closeModal();
+    askConfirm('Delete '+prof.name+'\'s profile?','Removes it from this device and from the cloud — no PIN needed. This can\'t be undone.',()=>deleteProfile(prof));
   }));
 }
 function setNewPinFromMenu(prof){
@@ -1055,11 +1063,9 @@ async function deleteProfile(prof){
   hideLoading();
   delete reg.data[prof.id];
   reg.profiles=reg.profiles.filter(p=>p.id!==prof.id);
-  const wasActive=reg.active===prof.id;
-  if(wasActive)reg.active=null;
+  if(reg.active===prof.id)reg.active=null;
   await saveReg();
   toast(ok?'Profile deleted':'Deleted on this device — cloud delete failed, try again when online','var(--muted)');
-  if(!wasActive)return;
   if(reg.profiles.length){
     showSwitcher();
   }else{
