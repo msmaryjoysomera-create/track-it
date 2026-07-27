@@ -79,6 +79,7 @@
   .login-btn{width:100%;background:var(--gold);color:#1A1400;border:none;border-radius:12px;
     padding:15px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--sans);margin-top:2px}
   .login-btn:active{transform:scale(.99)}
+  .login-btn.secondary{background:var(--card);color:var(--text);border:1px solid var(--line);margin-top:10px}
   .login-msg{min-height:18px;font-size:12.5px;color:var(--fail);margin:10px 0 2px}
   .login-link{background:none;border:none;color:var(--muted);font-size:13px;cursor:pointer;
     text-decoration:underline;font-family:var(--sans);padding:8px;margin-top:6px}
@@ -336,6 +337,17 @@
     <button class="login-btn" id="loginBtn">Log in</button>
     <div class="login-msg" id="loginMsg"></div>
     <button class="login-link" id="loginCreate">Create a new profile</button>
+  </div>
+</div>
+
+<div class="login" id="welcome">
+  <div class="login-card">
+    <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <h2>Track It</h2>
+    <p class="login-sub">Set up a tracker on this phone. Each profile is separate and can be PIN-locked.</p>
+    <button class="login-btn" id="welcomeLead">I'm Jun (lead)</button>
+    <button class="login-btn secondary" id="welcomeMember">I'm a team member</button>
+    <button class="login-link" id="welcomeLogin">Already set up? Log in with your name + team code</button>
   </div>
 </div>
 
@@ -703,9 +715,18 @@ async function load(){
   await loadReg();
   render();
   fetchRate();
-  // always start at the login screen (create-new is the secondary path)
-  showLogin();
+  // a device that already has a saved profile shouldn't need to retype name+code —
+  // just ask for the PIN (or let them pick, if more than one is saved here)
+  if(reg.profiles && reg.profiles.length===1){
+    openProfile(reg.profiles[0],true);
+  }else if(reg.profiles && reg.profiles.length>1){
+    showSwitcher();
+  }else{
+    showWelcome();
+  }
 }
+function showWelcome(){$('welcome').classList.add('show');}
+function hideWelcome(){$('welcome').classList.remove('show');}
 function showLogin(){
   $('login').classList.add('show');
   $('loginMsg').textContent='';
@@ -860,30 +881,30 @@ function syncAgo(){
 }
 
 // ---- profile creation ----
+function startLeadSetup(){
+  if(reg.profiles.some(p=>p.role==='lead')){toast('A lead profile already exists','var(--muted)');return;}
+  const askCode2=()=>askText('Create your team code','Make up a team code (at least 4 characters) — e.g. beatpulse2026. You\'ll give this same code to each team member so their counts sync to you.','',c=>{
+    const code=c.trim().toLowerCase();
+    if(code.length<4){toast('Code needs at least 4 characters','var(--muted)');setTimeout(askCode2,400);return;}
+    const st=defaultState();st.role='lead';st.name='Jun';st.rate=3.13;
+    st.teamCode=code;
+    finishNewProfile('Jun','lead',st);
+  });
+  askCode2();
+}
+function startMemberSetup(){
+  askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.','',v=>{
+    const nm=(v.trim()||'Member').slice(0,20);
+    const st=defaultState();st.role='member';st.name=nm;st.rate=2.00;
+    askText('Team code','Enter the team code Jun shared with you. Links your Send button to his dashboard.','',c=>{
+      st.teamCode=c.trim().toLowerCase();
+      finishNewProfile(nm,'member',st,()=>toast('Welcome, '+nm+'!'));
+    });
+  });
+}
 function createProfile(first){
   askChoice(first?'Welcome to Track It':'Add a profile','Set up a tracker on this phone. Each profile is separate and can be PIN-locked.',
-    'I\'m Jun (lead)','I\'m a team member',
-    ()=>{ // lead
-      if(reg.profiles.some(p=>p.role==='lead')){toast('A lead profile already exists','var(--muted)');return;}
-      const askCode2=()=>askText('Create your team code','Make up a team code (at least 4 characters) — e.g. beatpulse2026. You\'ll give this same code to each team member so their counts sync to you.','',c=>{
-        const code=c.trim().toLowerCase();
-        if(code.length<4){toast('Code needs at least 4 characters','var(--muted)');setTimeout(askCode2,400);return;}
-        const st=defaultState();st.role='lead';st.name='Jun';st.rate=3.13;
-        st.teamCode=code;
-        finishNewProfile('Jun','lead',st);
-      });
-      askCode2();
-    },
-    ()=>{ // member
-      askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.','',v=>{
-        const nm=(v.trim()||'Member').slice(0,20);
-        const st=defaultState();st.role='member';st.name=nm;st.rate=2.00;
-        askText('Team code','Enter the team code Jun shared with you. Links your Send button to his dashboard.','',c=>{
-          st.teamCode=c.trim().toLowerCase();
-          finishNewProfile(nm,'member',st,()=>toast('Welcome, '+nm+'!'));
-        });
-      });
-    });
+    'I\'m Jun (lead)','I\'m a team member',startLeadSetup,startMemberSetup);
 }
 
 async function finishNewProfile(name,role,st,done){
@@ -919,7 +940,10 @@ let pinBuf='',pinState=null; // pinState:{expect,onOk,initial,setPhase,firstPin}
 function promptPin(title,desc,expect,onOk,initial){
   pinBuf='';pinState={mode:'check',expect,onOk,initial};
   $('lockTitle').textContent=title;$('lockDesc').textContent=desc||'';
-  $('lockSwitch').style.display=reg.profiles.length>1?'block':'none';
+  // on an initial (page-load) check, always offer a way out even with just one
+  // profile saved here — e.g. to delete a broken one or add another
+  $('lockSwitch').style.display=(initial||reg.profiles.length>1)?'block':'none';
+  $('lockSwitch').textContent=reg.profiles.length>1?'Switch profile':'Manage profile';
   showLock();paintDots();
 }
 function setNewPin(prof,mandatory){
@@ -943,8 +967,8 @@ function pinKey(k){
     if(pinState&&pinState.mode==='set'&&pinState.mandatory)return; // can't skip a mandatory PIN
     if(pinState&&pinState.mode==='set'&&pinState.fromMenu){hideLock();openMenu();return;}
     if(pinState&&pinState.mode==='check'&&!pinState.initial){hideLock();return;}
-    // initial check with nowhere to go → show switcher if multiple, else stay
-    if(reg.profiles.length>1){showSwitcher();}
+    // initial check with nowhere to go → open the profile manager instead of being stuck
+    if(reg.profiles.length>=1){showSwitcher();}
     return;
   }
   if(k==='del'){pinBuf=pinBuf.slice(0,-1);paintDots();return;}
@@ -1071,7 +1095,7 @@ async function deleteProfile(prof){
   }else{
     state=defaultState();
     render();
-    showLogin();
+    showWelcome();
   }
 }
 
@@ -1416,7 +1440,10 @@ $('mInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('mOk'))$('mOk')
 $('cloudBtn').addEventListener('click',cloudSyncNow);
 $('loginBtn').addEventListener('click',doLogin);
 $('loginCode').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-$('loginCreate').addEventListener('click',()=>{hideLogin();createProfile(true);});
+$('loginCreate').addEventListener('click',()=>{hideLogin();showWelcome();});
+$('welcomeLead').addEventListener('click',()=>{hideWelcome();startLeadSetup();});
+$('welcomeMember').addEventListener('click',()=>{hideWelcome();startMemberSetup();});
+$('welcomeLogin').addEventListener('click',()=>{hideWelcome();showLogin();});
 $('profBtn').addEventListener('click',openMenu);
 
 $('addBtn').addEventListener('click',()=>{
