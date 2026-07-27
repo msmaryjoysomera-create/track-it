@@ -881,24 +881,40 @@ function syncAgo(){
 }
 
 // ---- profile creation ----
+// checks whether this name+code already exists in the cloud before deciding
+// whether to ask for the EXISTING pin (returning identity, e.g. a new device)
+// or set up a brand-new one (genuinely first time)
+async function identifyOrCreate(name,role,code,rate){
+  showLoading('Checking…');
+  let rec=null;
+  try{
+    const res=await fetch('/api/team?team='+encodeURIComponent(code)+'&name='+encodeURIComponent(name)+'&check=1');
+    if(res.ok)rec=await res.json();
+  }catch(e){/* offline — fall through to first-time setup */}
+  hideLoading();
+  if(rec&&rec.exists){
+    loginTarget={name,code,pinHash:rec.pinHash||'',role:rec.role||role};
+    promptLoginPin();
+    return;
+  }
+  const st=defaultState();st.role=role;st.name=name;st.rate=rate;st.teamCode=code;
+  finishNewProfile(name,role,st,role==='member'?()=>toast('Welcome, '+name+'!'):undefined);
+}
 function startLeadSetup(){
   if(reg.profiles.some(p=>p.role==='lead')){toast('A lead profile already exists','var(--muted)');return;}
-  const askCode2=()=>askText('Create your team code','Make up a team code (at least 4 characters) — e.g. beatpulse2026. You\'ll give this same code to each team member so their counts sync to you.','',c=>{
+  const askCode2=()=>askText('Team code','Enter your existing team code, or make up a new one (at least 4 characters) if this is your first time — e.g. beatpulse2026.','',c=>{
     const code=c.trim().toLowerCase();
     if(code.length<4){toast('Code needs at least 4 characters','var(--muted)');setTimeout(askCode2,400);return;}
-    const st=defaultState();st.role='lead';st.name='Jun';st.rate=3.13;
-    st.teamCode=code;
-    finishNewProfile('Jun','lead',st);
+    identifyOrCreate('Jun','lead',code,3.13);
   });
   askCode2();
 }
 function startMemberSetup(){
   askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.','',v=>{
     const nm=(v.trim()||'Member').slice(0,20);
-    const st=defaultState();st.role='member';st.name=nm;st.rate=2.00;
     askText('Team code','Enter the team code Jun shared with you. Links your Send button to his dashboard.','',c=>{
-      st.teamCode=c.trim().toLowerCase();
-      finishNewProfile(nm,'member',st,()=>toast('Welcome, '+nm+'!'));
+      const code=c.trim().toLowerCase();
+      identifyOrCreate(nm,'member',code,2.00);
     });
   });
 }
