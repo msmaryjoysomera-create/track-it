@@ -55,7 +55,10 @@
   .rate-btn{margin-left:auto;background:var(--card);border:1px solid var(--line);color:var(--gold);
     font-family:var(--mono);font-size:12px;padding:7px 11px;border-radius:99px;cursor:pointer}
   .prof-btn{margin-left:auto;background:var(--card);border:1px solid var(--line);color:var(--muted);
-    width:34px;height:34px;border-radius:99px;cursor:pointer;font-size:16px;line-height:1}
+    width:34px;height:34px;border-radius:99px;cursor:pointer;font-size:16px;line-height:1;
+    display:inline-flex;align-items:center;justify-content:center}
+  .prof-icon{width:16px;height:16px}
+  .prof-icon.spin{animation:spin .8s linear infinite}
   .prof-btn+.rate-btn{margin-left:8px}
   .prof-btn:active{transform:scale(.92)}
 
@@ -391,7 +394,7 @@
     <h1>Track It</h1>
     <small id="subTitle">annotation log</small>
   </div>
-  <button class="prof-btn" id="cloudBtn" aria-label="Sync now" title="Sync now">☁</button>
+  <button class="prof-btn" id="cloudBtn" aria-label="Sync now" title="Sync now"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
   <button class="rate-btn" id="rateBtn">$3.13/QA</button>
 </header>
 
@@ -825,6 +828,8 @@ async function pushState(){
 }
 async function cloudSyncNow(){
   if(!myId)return;
+  const icon=document.querySelector('#cloudBtn .prof-icon');
+  if(icon)icon.classList.add('spin');
   toast('Syncing…','var(--muted)');
   try{
     const{data:row,error}=await sb.from('profiles').select('*').eq('id',myId).single();
@@ -836,6 +841,7 @@ async function cloudSyncNow(){
     if(state.role!=='member')await fetchTeam(false);
     toast('Synced ✓');
   }catch(e){toast('Sync failed — check connection','var(--muted)');}
+  if(icon)icon.classList.remove('spin');
 }
 
 async function sendToJun(){
