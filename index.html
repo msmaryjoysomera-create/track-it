@@ -274,6 +274,9 @@
   .nav-item:active{background:var(--card)}
   .nav-item.active{background:var(--gold-dim);color:var(--gold)}
   .sidebar-spacer{flex:1}
+  .sidebar-user{padding:10px 10px 4px;border-top:1px solid var(--line);margin-top:8px}
+  .sidebar-user-name{font-size:13.5px;font-weight:600;color:var(--text)}
+  .sidebar-user-email{font-size:11.5px;color:var(--muted);margin-top:2px;word-break:break-all}
   .nav-logout{color:var(--fail)}
 
   /* views */
@@ -373,11 +376,16 @@
   <button class="nav-item" id="navWorkLog" data-view="worklog">📋 Work Log</button>
   <button class="nav-item" id="navSettings" data-view="settings">⚙ Settings</button>
   <div class="sidebar-spacer"></div>
+  <div class="sidebar-user" id="sidebarUser">
+    <div class="sidebar-user-name" id="sidebarUserName"></div>
+    <div class="sidebar-user-email" id="sidebarUserEmail"></div>
+  </div>
   <button class="nav-item nav-logout" id="sidebarLogout">🚪 Log out</button>
 </nav>
 
 <header>
   <button class="hamburger" id="hamburgerBtn" aria-label="Menu">☰</button>
+  <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <div>
     <h1>Track It</h1>
     <small id="subTitle">annotation log</small>
@@ -977,6 +985,8 @@ function render(){
 
   // role-aware sections
   $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' annotation log';
+  $('sidebarUserName').textContent=state.name||'';
+  $('sidebarUserEmail').textContent=myEmail||'';
   document.querySelector('.pendbox').classList.toggle('hidden',!lead);
   $('teamCard').classList.toggle('hidden',!lead);
   $('workLogLayout').classList.toggle('single',!lead);
