@@ -274,20 +274,28 @@
 </head>
 <body>
 
+<div class="login" id="roleChoice">
+  <div class="login-card">
+    <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <h2>Track It</h2>
+    <p class="login-sub">Who's logging in?</p>
+    <button class="login-btn" id="roleChoiceLead">Team Lead</button>
+    <button class="login-btn secondary" id="roleChoiceMember">Team Member</button>
+  </div>
+</div>
+
 <div class="login" id="auth">
   <div class="login-card">
     <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-    <h2 id="authTitle">Track It</h2>
-    <p class="login-sub" id="authSub">Log in to your tracker.</p>
+    <h2 id="authTitle">Team Lead</h2>
+    <p class="login-sub" id="authSub">Enter your email and password to continue.</p>
     <label class="login-lbl">Email</label>
     <input type="email" id="authEmail" placeholder="you@email.com" autocomplete="username">
     <label class="login-lbl">Password</label>
     <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
-    <button class="login-btn" id="authBtn">Log in</button>
-    <button class="login-btn" id="authSignupLead">I'm Jun (lead)</button>
-    <button class="login-btn secondary" id="authSignupMember">I'm a team member</button>
+    <button class="login-btn" id="authBtn">Continue</button>
     <div class="login-msg" id="authMsg"></div>
-    <button class="login-link" id="authToggle">New here? Sign up</button>
+    <button class="login-link" id="authBack">← Back</button>
     <button class="login-link" id="authForgot">Forgot password?</button>
   </div>
 </div>
@@ -476,7 +484,7 @@ async function load(){
   if(session){
     await enterApp(session);
   }else{
-    showAuth();
+    showRoleChoice();
   }
   sb.auth.onAuthStateChange((event)=>{
     if(event==='SIGNED_OUT')location.reload();
@@ -521,7 +529,7 @@ async function enterApp(session){
   state.name=row.name||myEmail;
   if(!state.rate)state.rate=state.role==='lead'?3.13:2.00;
   hideLoading();
-  hideAuth();hideSetPassword();
+  hideRoleChoice();hideAuth();hideSetPassword();
   if(row.role==='member'&&!row.name){
     askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.','',async v=>{
       const nm=(v.trim()||myEmail.split('@')[0]).slice(0,20);
@@ -536,50 +544,57 @@ async function enterApp(session){
 }
 
 // ---- auth screens ----
-let authMode='login';
-function showAuth(){$('auth').classList.add('show');$('authMsg').textContent='';renderAuthMode();}
+let chosenRole=null;
+function showRoleChoice(){$('roleChoice').classList.add('show');}
+function hideRoleChoice(){$('roleChoice').classList.remove('show');}
 function hideAuth(){$('auth').classList.remove('show');}
-function renderAuthMode(){
-  $('authTitle').textContent=authMode==='login'?'Track It':'Set up your tracker';
-  $('authSub').textContent=authMode==='login'?'Log in to your tracker.':'Choose your role to finish setting up.';
-  $('authBtn').style.display=authMode==='login'?'block':'none';
-  $('authSignupLead').style.display=authMode==='signup'?'block':'none';
-  $('authSignupMember').style.display=authMode==='signup'?'block':'none';
-  $('authToggle').textContent=authMode==='login'?'New here? Sign up':'Already have an account? Log in';
+function showAuthStep(role){
+  chosenRole=role;
+  $('authTitle').textContent=role==='lead'?'Team Lead':'Team Member';
+  $('authEmail').value='';$('authPassword').value='';
+  $('authMsg').textContent='';
+  $('auth').classList.add('show');
 }
-$('authToggle').addEventListener('click',()=>{authMode=authMode==='login'?'signup':'login';renderAuthMode();});
-async function doAuth(role){
+$('roleChoiceLead').addEventListener('click',()=>{hideRoleChoice();showAuthStep('lead');});
+$('roleChoiceMember').addEventListener('click',()=>{hideRoleChoice();showAuthStep('member');});
+$('authBack').addEventListener('click',()=>{hideAuth();showRoleChoice();});
+// one "Continue" for both a returning account and a brand-new one: try
+// logging in first (works for anyone who already exists, regardless of
+// which role button they happened to click); only fall back to creating a
+// new account — tagged with the role chosen in step one — if no such
+// login succeeds.
+async function doContinue(){
   const email=$('authEmail').value.trim();
   const password=$('authPassword').value;
   const msg=$('authMsg');
   msg.style.color='var(--fail)';
   if(!email||!email.includes('@')){msg.textContent='Enter a valid email';return;}
   if(password.length<6){msg.textContent='Password must be at least 6 characters';return;}
-  showLoading(role?'Setting up…':'Logging in…');
+  showLoading('Continuing…');
   try{
-    if(!role){
-      const{data,error}=await sb.auth.signInWithPassword({email,password});
+    const{data:loginData,error:loginError}=await sb.auth.signInWithPassword({email,password});
+    if(!loginError){
       hideLoading();
-      if(error){msg.textContent=error.message;return;}
-      await enterApp(data.session);
-    }else{
-      const{data,error}=await sb.auth.signUp({email,password});
-      hideLoading();
-      if(error){msg.textContent=error.message;return;}
-      if(!data.session){
-        msg.style.color='var(--pass)';
-        msg.textContent='Check your email to confirm your account, then log in.';
-        return;
-      }
-      await ensureOwnProfile(data.session.user,role);
-      await enterApp(data.session);
+      await enterApp(loginData.session);
+      return;
     }
+    const{data:signupData,error:signupError}=await sb.auth.signUp({email,password});
+    hideLoading();
+    if(signupError){
+      msg.textContent=/already/i.test(signupError.message)?'Wrong password for that email.':signupError.message;
+      return;
+    }
+    if(!signupData.session){
+      msg.style.color='var(--pass)';
+      msg.textContent='Check your email to confirm your account, then continue again.';
+      return;
+    }
+    await ensureOwnProfile(signupData.user,chosenRole);
+    await enterApp(signupData.session);
   }catch(e){hideLoading();msg.textContent='Something went wrong — try again';}
 }
-$('authBtn').addEventListener('click',()=>doAuth(null));
-$('authSignupLead').addEventListener('click',()=>doAuth('lead'));
-$('authSignupMember').addEventListener('click',()=>doAuth('member'));
-$('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter'&&authMode==='login')doAuth(null);});
+$('authBtn').addEventListener('click',doContinue);
+$('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doContinue();});
 $('authForgot').addEventListener('click',async()=>{
   const email=$('authEmail').value.trim();
   const msg=$('authMsg');
