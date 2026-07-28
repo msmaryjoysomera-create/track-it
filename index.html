@@ -255,19 +255,54 @@
   .expBtn{width:100%;background:var(--card-2);border:1px solid var(--line);color:var(--text);
     border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);margin:10px 0 4px}
   .expBtn:active{transform:scale(.98)}
+
+  /* nav: hamburger + sidebar */
+  .hamburger{background:var(--card);border:1px solid var(--line);color:var(--text);width:34px;height:34px;
+    border-radius:10px;cursor:pointer;font-size:16px;line-height:1;flex-shrink:0}
+  .hamburger:active{transform:scale(.92)}
+  .sidebar-backdrop{position:fixed;inset:0;background:rgba(6,8,12,.6);z-index:198;display:none}
+  .sidebar-backdrop.show{display:block}
+  .sidebar{position:fixed;top:0;left:0;bottom:0;width:264px;max-width:82vw;background:var(--card-2);
+    border-right:1px solid var(--line);z-index:199;display:flex;flex-direction:column;padding:18px 14px;
+    transform:translateX(-100%);transition:transform .25s ease}
+  .sidebar.show{transform:translateX(0)}
+  .sidebar-head{display:flex;align-items:center;gap:10px;margin:4px 6px 22px}
+  .sidebar-head h1{font-size:17px;font-weight:700}
+  .nav-item{display:flex;align-items:center;gap:11px;width:100%;background:none;border:none;color:var(--muted);
+    font-family:var(--sans);font-size:14.5px;font-weight:600;text-align:left;padding:12px 10px;border-radius:10px;
+    cursor:pointer;margin-bottom:2px}
+  .nav-item:active{background:var(--card)}
+  .nav-item.active{background:var(--gold-dim);color:var(--gold)}
+  .sidebar-spacer{flex:1}
+  .nav-logout{color:var(--fail)}
+
+  /* views */
+  .view.hidden{display:none}
+  .dashboardInner{max-width:640px;margin:0 auto}
+
+  /* settings */
+  .settingsCard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2px 16px}
+  .settingsRow{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 0;border-top:1px solid var(--line)}
+  .settingsRow:first-child{border-top:none}
+  .settingsLbl{font-size:14px;font-weight:600}
+  .settingsLbl small{display:block;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+  .settingsVal{background:var(--card-2);border:1px solid var(--line);color:var(--gold);font-family:var(--mono);
+    font-size:12.5px;padding:9px 13px;border-radius:10px;cursor:pointer;font-weight:600;flex-shrink:0;white-space:nowrap}
+  .settingsVal:active{transform:scale(.97)}
+
   /* ---- larger screens (laptop / iPad / desktop browser) ---- */
   @media (min-width:820px){
     body{max-width:1100px;padding:32px 28px 48px}
     .layout{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
-    .layout .col-right{display:flex;flex-direction:column;gap:18px}
+    .layout.single{grid-template-columns:1fr}
     header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--line)}
     h1{font-size:23px}
     .hero{padding:26px 24px 24px}
     .hero .amt{font-size:56px}
     .grid{gap:14px}
     .logcard,.team{margin-bottom:0}
-    .col-right .team.hidden{display:none}
-    .hero,.stat,.logcard,.team{box-shadow:0 10px 34px rgba(0,0,0,.28)}
+    .hero,.stat,.logcard,.team,.settingsCard{box-shadow:0 10px 34px rgba(0,0,0,.28)}
+    .dashboardInner{max-width:760px}
   }
   @media (min-width:1280px){
     body{max-width:1440px;padding:44px 56px 64px}
@@ -328,19 +363,31 @@
   <p id="loadingMsg">Checking…</p>
 </div>
 
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+    <h1>Track It</h1>
+  </div>
+  <button class="nav-item" id="navDashboard" data-view="dashboard">📊 Dashboard</button>
+  <button class="nav-item" id="navWorkLog" data-view="worklog">📋 Work Log</button>
+  <button class="nav-item" id="navSettings" data-view="settings">⚙ Settings</button>
+  <div class="sidebar-spacer"></div>
+  <button class="nav-item nav-logout" id="sidebarLogout">🚪 Log out</button>
+</nav>
+
 <header>
-  <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <button class="hamburger" id="hamburgerBtn" aria-label="Menu">☰</button>
   <div>
     <h1>Track It</h1>
     <small id="subTitle">annotation log</small>
   </div>
   <button class="prof-btn" id="cloudBtn" aria-label="Sync now" title="Sync now">☁</button>
-  <button class="prof-btn" id="logoutBtn" aria-label="Log out" title="Log out">🚪</button>
   <button class="rate-btn" id="rateBtn">$3.13/QA</button>
 </header>
 
-<div class="layout">
-<div class="col-left">
+<div id="viewDashboard" class="view">
+<div class="dashboardInner">
 <section class="hero">
   <div class="eyebrow">Earned today</div>
   <div class="amt" id="todayAmt">$0.00</div>
@@ -394,7 +441,10 @@
 <button class="sendBtn" id="sendBtn">📤 Send my counts to Jun</button>
 <p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
 </div>
-<div class="col-right">
+</div>
+
+<div id="viewWorkLog" class="view hidden">
+<div class="layout" id="workLogLayout">
 
 <div class="logcard">
   <div class="list-head" id="logHead">
@@ -418,6 +468,33 @@
     <div class="synced" id="syncedAt"></div>
     <div class="tsum" id="teamSum"></div>
     <div id="teamRows"></div>
+  </div>
+</div>
+</div>
+</div>
+
+<div id="viewSettings" class="view hidden">
+<div class="dashboardInner">
+<div class="settingsCard">
+  <div class="settingsRow">
+    <div class="settingsLbl">Pay rate<small id="setRateSub">per QA'd track</small></div>
+    <button class="settingsVal" id="setRateBtn">$0.00</button>
+  </div>
+  <div class="settingsRow">
+    <div class="settingsLbl">Daily target</div>
+    <button class="settingsVal" id="setGoalBtn">24</button>
+  </div>
+  <div class="settingsRow">
+    <div class="settingsLbl">Exchange rate<small>USD → PHP</small></div>
+    <button class="settingsVal" id="setPhpBtn">₱0.00</button>
+  </div>
+  <div class="settingsRow hidden" id="setTcrateRow">
+    <div class="settingsLbl">Colleague pay<small>per track they log</small></div>
+    <button class="settingsVal" id="setTcrateBtn">$0.00</button>
+  </div>
+  <div class="settingsRow">
+    <div class="settingsLbl">Account<small id="setEmailSub"></small></div>
+    <button class="settingsVal" id="setPasswordBtn">Change password</button>
   </div>
 </div>
 </div>
@@ -648,9 +725,78 @@ $('setpwBtn').addEventListener('click',async()=>{
 });
 $('setpwPassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('setpwBtn').click();});
 
-$('logoutBtn').addEventListener('click',()=>{
+$('sidebarLogout').addEventListener('click',()=>{
+  closeSidebar();
   askChoice('Log out?','You\'ll need your email and password to log back in on this device.','Log out','Cancel',async()=>{
     await sb.auth.signOut();
+  });
+});
+
+// ---- nav: hamburger sidebar + view switching ----
+function openSidebar(){$('sidebar').classList.add('show');$('sidebarBackdrop').classList.add('show');}
+function closeSidebar(){$('sidebar').classList.remove('show');$('sidebarBackdrop').classList.remove('show');}
+$('hamburgerBtn').addEventListener('click',openSidebar);
+$('sidebarBackdrop').addEventListener('click',closeSidebar);
+let currentView='dashboard';
+function showView(view){
+  currentView=view;
+  ['dashboard','worklog','settings'].forEach(v=>{
+    $('view'+(v==='worklog'?'WorkLog':v[0].toUpperCase()+v.slice(1))).classList.toggle('hidden',v!==view);
+  });
+  $('navDashboard').classList.toggle('active',view==='dashboard');
+  $('navWorkLog').classList.toggle('active',view==='worklog');
+  $('navSettings').classList.toggle('active',view==='settings');
+  closeSidebar();
+}
+$('navDashboard').addEventListener('click',()=>showView('dashboard'));
+$('navWorkLog').addEventListener('click',()=>showView('worklog'));
+$('navSettings').addEventListener('click',()=>showView('settings'));
+showView('dashboard');
+
+// ---- settings view ----
+function renderSettings(){
+  const lead=state.role!=='member';
+  $('setRateBtn').textContent=money(state.rate);
+  $('setRateSub').textContent=lead?'per QA\'d track':'per track';
+  $('setGoalBtn').textContent=state.goal;
+  $('setPhpBtn').textContent=peso(state.php);
+  $('setTcrateRow').classList.toggle('hidden',!lead);
+  if(lead)$('setTcrateBtn').textContent=money(state.tcrate);
+  $('setEmailSub').textContent=myEmail||'';
+}
+$('setRateBtn').addEventListener('click',()=>$('rateBtn').click());
+$('setGoalBtn').addEventListener('click',()=>$('goalBtn').click());
+$('setPhpBtn').addEventListener('click',()=>{
+  askNum('USD → PHP exchange rate','Pesos per $1. Tap ↻ on the dashboard to fetch the live rate; set it manually here to override.',state.php,n=>{
+    state.php=n;rateLive=false;save();render();
+  });
+});
+$('setTcrateBtn').addEventListener('click',()=>{
+  askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
+    if(n>=state.rate){toast('Must be below your own rate','var(--muted)');return;}
+    state.tcrate=n;save();render();
+  });
+});
+function askPassword(title,desc,cb){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  const inp=$('mInput');
+  inp.type='password';inp.removeAttribute('inputmode');inp.style.display='block';inp.value='';
+  $('mOk').textContent='Save';
+  $('mCancel').textContent='Cancel';
+  modalCb=()=>{
+    if(inp.value.length<6){toast('Password must be at least 6 characters','var(--muted)');return;}
+    cb(inp.value);
+  };
+  cancelCb=null;
+  $('overlay').classList.add('show');
+  setTimeout(()=>inp.focus(),50);
+}
+$('setPasswordBtn').addEventListener('click',()=>{
+  askPassword('Change password','Enter a new password (at least 6 characters).',async pw=>{
+    const{error}=await sb.auth.updateUser({password:pw});
+    toast(error?error.message:'Password updated ✓',error?'var(--fail)':undefined);
   });
 });
 
@@ -833,10 +979,12 @@ function render(){
   $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' annotation log';
   document.querySelector('.pendbox').classList.toggle('hidden',!lead);
   $('teamCard').classList.toggle('hidden',!lead);
+  $('workLogLayout').classList.toggle('single',!lead);
   $('sendBtn').style.display=lead?'none':'block';
   if(lead)renderTeam();
 
   renderSongs();
+  renderSettings();
 }
 
 function renderTeam(){
