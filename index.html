@@ -289,6 +289,8 @@
     <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
     <h2 id="authTitle">Team Lead</h2>
     <p class="login-sub" id="authSub">Enter your email and password to continue.</p>
+    <button class="login-btn secondary" id="googleBtn">Continue with Google</button>
+    <p class="login-sub" style="margin:12px 0">or continue with email</p>
     <label class="login-lbl">Email</label>
     <input type="email" id="authEmail" placeholder="you@email.com" autocomplete="username">
     <label class="login-lbl">Password</label>
@@ -441,6 +443,10 @@
 // supabase-js client (deferred, runs after this classic script) processes and
 // clears it — this runs synchronously at parse time, ahead of any module script.
 const AUTH_FLOW_TYPE=(()=>{try{return new URLSearchParams(location.hash.replace(/^#/,'')).get('type');}catch(e){return null;}})();
+// role chosen on the landing page, carried through a Google OAuth redirect
+// (a full page reload) via a query param, since an in-memory JS variable
+// wouldn't survive that round trip the way it does for the email flow
+const ROLE_FROM_REDIRECT=(()=>{try{return new URLSearchParams(location.search).get('role')||null;}catch(e){return null;}})();
 
 const defaultState=()=>({role:'member',name:'',rate:2.00,tcrate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,
   team:{reports:{},paid:{}},songs:[]});
@@ -517,7 +523,7 @@ async function enterApp(session){
   myId=session.user.id;
   myEmail=session.user.email;
   showLoading('Loading your data…');
-  let row=await ensureOwnProfile(session.user,'lead');
+  let row=await ensureOwnProfile(session.user,ROLE_FROM_REDIRECT||chosenRole||'lead');
   if(row.role==='member'&&!row.lead_id){
     // self-registered before Jun existed, or a previous join attempt was
     // offline — retry silently; harmless no-op once already linked
@@ -531,7 +537,9 @@ async function enterApp(session){
   hideLoading();
   hideRoleChoice();hideAuth();hideSetPassword();
   if(row.role==='member'&&!row.name){
-    askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.','',async v=>{
+    const meta=session.user.user_metadata||{};
+    const suggested=meta.full_name||meta.name||'';
+    askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.',suggested,async v=>{
       const nm=(v.trim()||myEmail.split('@')[0]).slice(0,20);
       state.name=nm;
       await sb.from('profiles').update({name:nm}).eq('id',myId);
@@ -595,6 +603,11 @@ async function doContinue(){
 }
 $('authBtn').addEventListener('click',doContinue);
 $('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doContinue();});
+$('googleBtn').addEventListener('click',async()=>{
+  const redirectTo=location.origin+location.pathname+'?role='+encodeURIComponent(chosenRole||'');
+  const{error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
+  if(error){$('authMsg').style.color='var(--fail)';$('authMsg').textContent=error.message;}
+});
 $('authForgot').addEventListener('click',async()=>{
   const email=$('authEmail').value.trim();
   const msg=$('authMsg');
