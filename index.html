@@ -252,9 +252,9 @@
   .trow .payBtn:disabled{opacity:.35;cursor:default}
   .team .none{font-size:12.5px;color:var(--muted);padding:8px 0 10px;line-height:1.5}
   .team .synced{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-bottom:8px}
-  .team .expBtn{width:100%;background:var(--card-2);border:1px solid var(--line);color:var(--text);
-    border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);margin:6px 0 4px}
-  .team .expBtn:active{transform:scale(.98)}
+  .expBtn{width:100%;background:var(--card-2);border:1px solid var(--line);color:var(--text);
+    border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);margin:10px 0 4px}
+  .expBtn:active{transform:scale(.98)}
   /* ---- larger screens (laptop / iPad / desktop browser) ---- */
   @media (min-width:820px){
     body{max-width:1000px;padding:32px 28px 48px}
@@ -395,6 +395,7 @@
   <div id="logBody">
     <div id="songList"></div>
   </div>
+  <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
 </div>
 
 <div class="team hidden" id="teamCard">
@@ -408,7 +409,6 @@
     <div class="synced" id="syncedAt"></div>
     <div class="tsum" id="teamSum"></div>
     <div id="teamRows"></div>
-    <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
   </div>
 </div>
 </div>
