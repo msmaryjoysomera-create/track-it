@@ -241,9 +241,6 @@
   .team .tsum b{color:var(--gold);font-family:var(--mono)}
   .team .tsum button{background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;
     text-decoration:underline dotted;font-family:var(--sans);padding:0}
-  .inviteRow{display:flex;gap:8px;margin-bottom:10px}
-  .inviteRow input{flex:1;margin-bottom:0}
-  .inviteRow button{width:auto;padding:0 16px;margin-bottom:0;flex-shrink:0}
   .trow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
   .trow .tname{font-size:14px;font-weight:600;min-width:0}
   .trow .tname small{display:block;font-size:11px;color:var(--muted);font-weight:400;font-family:var(--mono)}
@@ -287,8 +284,10 @@
     <label class="login-lbl">Password</label>
     <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
     <button class="login-btn" id="authBtn">Log in</button>
+    <button class="login-btn" id="authSignupLead">I'm Jun (lead)</button>
+    <button class="login-btn secondary" id="authSignupMember">I'm a team member</button>
     <div class="login-msg" id="authMsg"></div>
-    <button class="login-link" id="authToggle">New here? Sign up as team lead</button>
+    <button class="login-link" id="authToggle">New here? Sign up</button>
     <button class="login-link" id="authForgot">Forgot password?</button>
   </div>
 </div>
@@ -398,10 +397,6 @@
   <div id="teamBody">
     <div class="synced" id="syncedAt"></div>
     <div class="tsum" id="teamSum"></div>
-    <div class="inviteRow">
-      <input type="email" class="songIn" id="inviteEmail" placeholder="teammate@email.com" autocomplete="off">
-      <button class="logBtn" id="inviteBtn">Invite</button>
-    </div>
     <div id="teamRows"></div>
     <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
   </div>
@@ -496,12 +491,30 @@ async function ensureOwnProfile(user,defaultRole){
   await sb.from('profiles').insert(row);
   return row;
 }
+// there's exactly one lead in this app — find and attach to them server-side
+// (never via a client-side RLS policy, which would expose the lead's own
+// private blob/email to any self-registering member's query)
+async function tryJoinLead(accessToken,currentRow){
+  try{
+    const res=await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken}});
+    if(res.ok){
+      const{data:fresh}=await sb.from('profiles').select('*').eq('id',currentRow.id).maybeSingle();
+      if(fresh)return fresh;
+    }
+  }catch(e){/* offline or no lead yet — proceed with what we have, retried on next load */}
+  return currentRow;
+}
 
 async function enterApp(session){
   myId=session.user.id;
   myEmail=session.user.email;
   showLoading('Loading your data…');
-  const row=await ensureOwnProfile(session.user,'lead');
+  let row=await ensureOwnProfile(session.user,'lead');
+  if(row.role==='member'&&!row.lead_id){
+    // self-registered before Jun existed, or a previous join attempt was
+    // offline — retry silently; harmless no-op once already linked
+    row=await tryJoinLead(session.access_token,row);
+  }
   myLeadId=row.lead_id||null;
   state=normalizeState(row.blob?JSON.parse(row.blob):{});
   state.role=row.role;
@@ -528,21 +541,23 @@ function showAuth(){$('auth').classList.add('show');$('authMsg').textContent='';
 function hideAuth(){$('auth').classList.remove('show');}
 function renderAuthMode(){
   $('authTitle').textContent=authMode==='login'?'Track It':'Set up your tracker';
-  $('authSub').textContent=authMode==='login'?'Log in to your tracker.':'Signing up creates a new lead dashboard. Team members join by email invite instead.';
-  $('authBtn').textContent=authMode==='login'?'Log in':'Sign up';
-  $('authToggle').textContent=authMode==='login'?'New here? Sign up as team lead':'Already have an account? Log in';
+  $('authSub').textContent=authMode==='login'?'Log in to your tracker.':'Choose your role to finish setting up.';
+  $('authBtn').style.display=authMode==='login'?'block':'none';
+  $('authSignupLead').style.display=authMode==='signup'?'block':'none';
+  $('authSignupMember').style.display=authMode==='signup'?'block':'none';
+  $('authToggle').textContent=authMode==='login'?'New here? Sign up':'Already have an account? Log in';
 }
 $('authToggle').addEventListener('click',()=>{authMode=authMode==='login'?'signup':'login';renderAuthMode();});
-async function doAuth(){
+async function doAuth(role){
   const email=$('authEmail').value.trim();
   const password=$('authPassword').value;
   const msg=$('authMsg');
   msg.style.color='var(--fail)';
   if(!email||!email.includes('@')){msg.textContent='Enter a valid email';return;}
   if(password.length<6){msg.textContent='Password must be at least 6 characters';return;}
-  showLoading(authMode==='login'?'Logging in…':'Setting up…');
+  showLoading(role?'Setting up…':'Logging in…');
   try{
-    if(authMode==='login'){
+    if(!role){
       const{data,error}=await sb.auth.signInWithPassword({email,password});
       hideLoading();
       if(error){msg.textContent=error.message;return;}
@@ -556,13 +571,15 @@ async function doAuth(){
         msg.textContent='Check your email to confirm your account, then log in.';
         return;
       }
-      await ensureOwnProfile(data.session.user,'lead');
+      await ensureOwnProfile(data.session.user,role);
       await enterApp(data.session);
     }
   }catch(e){hideLoading();msg.textContent='Something went wrong — try again';}
 }
-$('authBtn').addEventListener('click',doAuth);
-$('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doAuth();});
+$('authBtn').addEventListener('click',()=>doAuth(null));
+$('authSignupLead').addEventListener('click',()=>doAuth('lead'));
+$('authSignupMember').addEventListener('click',()=>doAuth('member'));
+$('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter'&&authMode==='login')doAuth(null);});
 $('authForgot').addEventListener('click',async()=>{
   const email=$('authEmail').value.trim();
   const msg=$('authMsg');
@@ -674,21 +691,6 @@ function syncAgo(){
   const d=Math.floor(h/24);
   return 'synced '+d+' day'+(d>1?'s':'')+' ago';
 }
-
-$('inviteBtn').addEventListener('click',async()=>{
-  const email=$('inviteEmail').value.trim().toLowerCase();
-  if(!email||!email.includes('@')){toast('Enter a valid email','var(--muted)');return;}
-  $('inviteBtn').disabled=true;
-  try{
-    const{data:{session}}=await sb.auth.getSession();
-    const res=await fetch('/api/invite',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
-      body:JSON.stringify({email})});
-    const j=await res.json();
-    if(res.ok){$('inviteEmail').value='';toast(j.alreadyInvited?'Already invited':'Invite sent ✓');}
-    else{toast(j.error||'Could not send invite','var(--fail)');}
-  }catch(e){toast('Offline — try again when connected','var(--fail)');}
-  $('inviteBtn').disabled=false;
-});
 
 let rateLive=false;
 async function fetchRate(notify){
@@ -819,7 +821,7 @@ function renderTeam(){
       +'</div>';
   });
   $('teamSum').innerHTML=(names.length?('Your cut: <b>'+money(totalN*cut)+'</b> · '):'')+'they earn <button id="tcrateBtn">'+money(state.tcrate)+'/track</button>';
-  $('teamRows').innerHTML=rows||'<div class="none">No team counts yet. Invite a teammate above, or ask them to tap "Send my counts to Jun" in their app.</div>';
+  $('teamRows').innerHTML=rows||'<div class="none">No team counts yet. Team members can sign up themselves and tap "Send my counts to Jun" once they\'re in.</div>';
   const tb=$('tcrateBtn');
   if(tb)tb.addEventListener('click',()=>{
     askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
