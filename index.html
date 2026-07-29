@@ -148,7 +148,8 @@
     margin-bottom:12px;box-shadow:0 4px 18px rgba(245,192,68,.22)}
   .logBtn:active{transform:scale(.97)}
   .sendBtn{width:100%;background:var(--card);border:1px solid var(--pass);color:var(--pass);border-radius:14px;
-    padding:13px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:var(--sans);margin-bottom:12px;display:none}
+    padding:13px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:var(--sans);margin-bottom:12px;display:none;
+    align-items:center;justify-content:center;gap:9px}
   .sendBtn:active{transform:scale(.98)}
   .hidden{display:none!important}
 
@@ -239,7 +240,8 @@
   .team .th>h2{cursor:pointer;flex:1}
   .team.collapsed #teamBody{display:none}
   .team .th .impBtn{background:var(--pass-dim);border:1px solid rgba(78,214,167,.3);color:var(--pass);
-    border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans)}
+    border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);
+    display:inline-flex;align-items:center;gap:6px}
   .team .tsum{font-size:11.5px;color:var(--muted);margin-bottom:8px}
   .team .tsum b{color:var(--gold);font-family:var(--mono)}
   .team .tsum button{background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;
@@ -286,6 +288,8 @@
   /* views */
   .view.hidden{display:none}
   .dashboardInner{max-width:640px;margin:0 auto}
+  .dashTop{display:flex;flex-direction:column}
+  .dashRight .grid{margin-bottom:16px}
 
   /* settings */
   .settingsCard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2px 16px}
@@ -314,6 +318,7 @@
   .chartBar{cursor:pointer;transition:opacity .1s}
   .chartBar:hover{opacity:.8}
   .chartAxisLabel{font-family:var(--mono);font-size:9.5px;fill:var(--muted)}
+  .chartValueLabel{font-family:var(--mono);font-size:10px;font-weight:600}
 
   /* ---- larger screens (laptop / iPad / desktop browser) ---- */
   @media (min-width:820px){
@@ -326,6 +331,9 @@
     .logcard,.team{margin-bottom:0}
     .hero,.stat,.logcard,.team,.settingsCard{box-shadow:0 10px 34px rgba(0,0,0,.28)}
     .dashboardInner{max-width:760px}
+    #viewDashboard .dashboardInner{max-width:960px}
+    .dashTop{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:start}
+    .dashRight .grid{grid-template-columns:1fr;gap:12px;margin-bottom:0}
   }
   @media (min-width:1280px){
     body{max-width:1440px;padding:44px 56px 64px}
@@ -416,6 +424,8 @@
 
 <div id="viewDashboard" class="view">
 <div class="dashboardInner">
+<div class="dashTop">
+<div class="dashLeft">
 <section class="hero">
   <div class="eyebrow">Earned today</div>
   <div class="amt" id="todayAmt">$0.00</div>
@@ -458,22 +468,26 @@
   </div>
 </section>
 
+<input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
+<button class="logBtn" id="addBtn">+ Log a submission</button>
+<button class="sendBtn" id="sendBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send my counts to lead</button>
+<p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
+</div>
+
+<div class="dashRight">
 <div class="grid">
   <div class="stat"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div><div class="n" id="weekN"></div></div>
   <div class="stat"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="n" id="monthN"></div></div>
   <div class="stat"><div class="eyebrow">All time</div><div class="v" id="allAmt">$0.00</div><div class="p" id="allPhp"></div><div class="n" id="allN"></div></div>
 </div>
-
-<input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
-<button class="logBtn" id="addBtn">+ Log a submission</button>
-<button class="sendBtn" id="sendBtn">📤 Send my counts to Jun</button>
-<p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
+</div>
+</div>
 
 <div class="team hidden" id="teamCard">
   <div class="th" id="teamHead">
     <h2>Team <span class="chev" id="teamChev">▼</span></h2>
     <div style="display:flex;gap:6px" id="teamBtns">
-      <button class="impBtn" id="syncBtn">🔄 Sync</button>
+      <button class="impBtn" id="syncBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Sync</button>
     </div>
   </div>
   <div id="teamBody">
@@ -862,12 +876,12 @@ function bucketCounts(bucket){
   return{own,team};
 }
 function renderBarChart(containerId,buckets,values,opts){
-  const w=560,h=140,padL=4,padR=4,padB=20,padT=10;
+  const w=560,h=150,padL=4,padR=4,padB=20,padT=22;
   const innerW=w-padL-padR,innerH=h-padT-padB;
   const max=Math.max(1,...values);
   const n=buckets.length,gap=6;
   const barW=Math.max(4,(innerW-gap*(n-1))/n);
-  let bars='',labels='';
+  let bars='',labels='',valueLabels='';
   buckets.forEach((b,i)=>{
     const v=values[i];
     const barH=v>0?Math.max(3,(v/max)*innerH):0;
@@ -875,9 +889,12 @@ function renderBarChart(containerId,buckets,values,opts){
     const y=padT+innerH-barH;
     bars+='<rect class="chartBar" data-i="'+i+'" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+barW.toFixed(1)+'" height="'+barH.toFixed(1)+'" rx="3" fill="'+opts.color+'"></rect>';
     labels+='<text class="chartAxisLabel" x="'+(x+barW/2).toFixed(1)+'" y="'+(h-6)+'" text-anchor="middle">'+esc(b.label)+'</text>';
+    if(v>0){
+      valueLabels+='<text class="chartValueLabel" x="'+(x+barW/2).toFixed(1)+'" y="'+(y-6).toFixed(1)+'" text-anchor="middle" fill="'+opts.color+'">'+esc(opts.format(v))+'</text>';
+    }
   });
   const el=$(containerId);
-  el.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+bars+labels+'</svg>'
+  el.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:'+h+'px;display:block">'+bars+labels+valueLabels+'</svg>'
     +'<div class="chartTooltip" id="'+containerId+'Tip"></div>';
   const tip=$(containerId+'Tip');
   el.querySelectorAll('.chartBar').forEach(bar=>{
@@ -1155,7 +1172,7 @@ function render(){
   $('sidebarUserEmail').textContent=myEmail||'';
   document.querySelector('.pendbox').classList.toggle('hidden',!lead);
   $('teamCard').classList.toggle('hidden',!lead);
-  $('sendBtn').style.display=lead?'none':'block';
+  $('sendBtn').style.display=lead?'none':'flex';
   if(lead)renderTeam();
 
   renderSongs();
