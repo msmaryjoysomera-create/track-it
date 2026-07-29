@@ -30,8 +30,6 @@
     --pend-dim:rgba(127,166,240,.14);
     --fail:#F07A7A;
     --fail-dim:rgba(240,122,122,.13);
-    --ret:#D79BF0;
-    --ret-dim:rgba(215,155,240,.13);
     --radius:14px;
     --mono:'IBM Plex Mono',ui-monospace,monospace;
     --sans:'Space Grotesk',system-ui,sans-serif;
@@ -121,23 +119,6 @@
     text-decoration:underline dotted;font-family:var(--sans);padding:0}
   .goal .cap b{color:var(--text)}
 
-  .pendbox{background:rgba(0,0,0,.22);border:1px solid var(--line);
-    border-radius:12px;padding:4px 12px;position:relative;z-index:1}
-  .qrow{display:flex;align-items:center;gap:10px;padding:7px 0}
-  .qrow+.qrow{border-top:1px solid var(--line)}
-  .qrow .lbl{flex:1;font-size:12.5px;color:var(--text);line-height:1.3}
-  .qrow .lbl span{display:block;color:var(--muted);font-size:10.5px}
-  .step{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:rgba(0,0,0,.25)}
-  .step button{background:transparent;border:none;color:var(--text);font-size:18px;width:38px;height:38px;cursor:pointer;font-family:var(--mono)}
-  .step button:active{background:var(--card-2)}
-  .step .val{width:46px;text-align:center;font-family:var(--mono);font-size:17px;font-weight:600;
-    background:transparent;border:none;font-variant-numeric:tabular-nums}
-  .step .val:focus{outline:none;color:var(--text)}
-  .qrow.q-pend .val{color:var(--pend)}
-  .qrow.q-fail .val{color:var(--fail)}
-  .qrow.q-ret .val{color:var(--ret)}
-  input[type=number]::-webkit-inner-spin-button{display:none}
-
   /* quick log */
   .songIn{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;
     color:var(--text);padding:14px 15px;font-size:15px;font-family:var(--sans);margin-bottom:8px}
@@ -147,10 +128,6 @@
     padding:18px;font-weight:700;font-size:17px;cursor:pointer;font-family:var(--sans);
     margin-bottom:12px;box-shadow:0 4px 18px rgba(245,192,68,.22)}
   .logBtn:active{transform:scale(.97)}
-  .sendBtn{width:100%;background:var(--card);border:1px solid var(--pass);color:var(--pass);border-radius:14px;
-    padding:13px;font-weight:600;font-size:14.5px;cursor:pointer;font-family:var(--sans);margin-bottom:12px;display:none;
-    align-items:center;justify-content:center;gap:9px}
-  .sendBtn:active{transform:scale(.98)}
   .hidden{display:none!important}
 
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
@@ -228,31 +205,9 @@
     min-height:110px;resize:vertical;display:none;word-break:break-all}
   .modal textarea:focus{outline:2px solid var(--gold);border-color:transparent}
 
-  /* team */
-  .team{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:14px 14px 6px;margin-bottom:16px}
   .logcard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:14px 14px 8px;margin-bottom:16px}
   .logcard .list-head{margin-bottom:8px}
-  .team .th{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .team .th h2{font-size:14px;font-weight:600}
-  .team .th>h2{flex:1}
-  .team .th .impBtn{background:var(--pass-dim);border:1px solid rgba(78,214,167,.3);color:var(--pass);
-    border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);
-    display:inline-flex;align-items:center;gap:6px}
-  .team .tsum{font-size:11.5px;color:var(--muted);margin-bottom:8px}
-  .team .tsum b{color:var(--gold);font-family:var(--mono)}
-  .team .tsum button{background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;
-    text-decoration:underline dotted;font-family:var(--sans);padding:0}
-  .trow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
-  .trow .tname{font-size:14px;font-weight:600;min-width:0}
-  .trow .tname .tnameText{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .trow .tname small{display:block;font-size:11px;color:var(--muted);font-weight:400;font-family:var(--mono)}
-  .trow .owe{margin-left:auto;text-align:right;flex-shrink:0}
-  .trow .owe b{font-family:var(--mono);font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;display:block}
-  .trow .owe span{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
-  .team .none{font-size:12.5px;color:var(--muted);padding:8px 0 10px;line-height:1.5}
-  .team .synced{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-bottom:8px}
   .expBtn{width:100%;background:var(--card-2);border:1px solid var(--line);color:var(--text);
     border-radius:11px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);margin:10px 0 4px}
   .expBtn:active{transform:scale(.98)}
@@ -289,7 +244,6 @@
   .hero{flex:1}
   .dashRight{display:flex;flex-direction:column}
   .dashRight .grid{margin-bottom:16px;flex:1;grid-template-rows:1fr 1fr}
-  .dashRight .team{flex:0 0 auto}
   .recentList{margin-top:16px}
   .recentLbl{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.08em;
     text-transform:uppercase;margin-bottom:8px}
@@ -307,9 +261,6 @@
   /* analytics */
   .analyticsCard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:16px;margin-bottom:14px}
-  .qaPct{font-family:var(--mono);font-size:36px;font-weight:600;color:var(--pass);margin:6px 0 2px;
-    font-variant-numeric:tabular-nums}
-  .qaSub{font-size:12px;color:var(--muted)}
   .periodToggle{display:flex;gap:8px}
   .periodBtn{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:10px;
     padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans)}
@@ -331,8 +282,8 @@
     .hero{padding:26px 24px 24px}
     .hero .amt{font-size:56px}
     .grid{gap:14px}
-    .logcard,.team{margin-bottom:0}
-    .hero,.stat,.logcard,.team,.settingsCard{box-shadow:0 10px 34px rgba(0,0,0,.28)}
+    .logcard{margin-bottom:0}
+    .hero,.stat,.logcard,.settingsCard{box-shadow:0 10px 34px rgba(0,0,0,.28)}
     .dashboardInner{max-width:760px}
     #viewDashboard .dashboardInner{max-width:960px}
     .dashTop{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:stretch}
@@ -352,21 +303,11 @@
 </head>
 <body>
 
-<div class="login" id="roleChoice">
-  <div class="login-card">
-    <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-    <h2>Track It</h2>
-    <p class="login-sub">Who's logging in?</p>
-    <button class="login-btn" id="roleChoiceLead">Team Lead</button>
-    <button class="login-btn secondary" id="roleChoiceMember">Team Member</button>
-  </div>
-</div>
-
 <div class="login" id="auth">
   <div class="login-card">
     <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-    <h2 id="authTitle">Team Lead</h2>
-    <p class="login-sub" id="authSub">Enter your email and password to continue.</p>
+    <h2>Track It</h2>
+    <p class="login-sub">Enter your email and password to continue.</p>
     <button class="login-btn secondary" id="googleBtn">Continue with Google</button>
     <p class="login-sub" style="margin:12px 0">or continue with email</p>
     <label class="login-lbl">Email</label>
@@ -375,7 +316,6 @@
     <input type="password" id="authPassword" placeholder="••••••••" autocomplete="current-password">
     <button class="login-btn" id="authBtn">Continue</button>
     <div class="login-msg" id="authMsg"></div>
-    <button class="login-link" id="authBack">← Back</button>
     <button class="login-link" id="authForgot">Forgot password?</button>
   </div>
 </div>
@@ -405,7 +345,6 @@
   </div>
   <button class="nav-item" id="navDashboard" data-view="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg> Dashboard</button>
   <button class="nav-item" id="navWorkLog" data-view="worklog"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> Work Log</button>
-  <button class="nav-item hidden" id="navTeam" data-view="team"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Team</button>
   <button class="nav-item" id="navAnalytics" data-view="analytics"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Analytics</button>
   <button class="nav-item" id="navSettings" data-view="settings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</button>
   <div class="sidebar-spacer"></div>
@@ -424,7 +363,7 @@
     <small id="subTitle">annotation log</small>
   </div>
   <button class="prof-btn" id="cloudBtn" aria-label="Sync now" title="Sync now"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
-  <button class="rate-btn" id="rateBtn">$3.13/QA</button>
+  <button class="rate-btn" id="rateBtn">$2.00/track</button>
 </header>
 
 <div id="viewDashboard" class="view">
@@ -441,34 +380,6 @@
     <div class="cap">
       <span id="goalText"><b>0</b> / 24 daily target</span>
       <button id="goalBtn">edit target</button>
-    </div>
-  </div>
-  <div class="pendbox">
-    <div class="qrow q-pend">
-      <div class="lbl">Pending QA</div>
-      <div class="step">
-        <button data-dec="pending" aria-label="Decrease">−</button>
-        <input class="val" id="pendIn" data-key="pending" type="number" inputmode="numeric" min="0" value="0">
-        <button data-inc="pending" aria-label="Increase">+</button>
-      </div>
-    </div>
-    <div class="qrow q-fail">
-      <div class="lbl">Failed QA
-        <span>All time — these never pay</span></div>
-      <div class="step">
-        <button data-dec="failed" aria-label="Decrease">−</button>
-        <input class="val" id="failIn" data-key="failed" type="number" inputmode="numeric" min="0" value="0">
-        <button data-inc="failed" aria-label="Increase">+</button>
-      </div>
-    </div>
-    <div class="qrow q-ret">
-      <div class="lbl">Returned to you
-        <span>Current — unpaid until resubmitted</span></div>
-      <div class="step">
-        <button data-dec="returned" aria-label="Decrease">−</button>
-        <input class="val" id="retIn" data-key="returned" type="number" inputmode="numeric" min="0" value="0">
-        <button data-inc="returned" aria-label="Increase">+</button>
-      </div>
     </div>
   </div>
 </section>
@@ -494,27 +405,12 @@
     <div class="statCount"><div class="cnum" id="allCount">0</div><div class="clbl">logged</div></div>
   </div>
 </div>
-
-<div class="team hidden" id="teamCard">
-  <div class="th" id="teamHead">
-    <h2>Team</h2>
-    <div style="display:flex;gap:6px" id="teamBtns">
-      <button class="impBtn" id="syncBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Sync</button>
-    </div>
-  </div>
-  <div id="teamBody">
-    <div class="synced" id="syncedAt"></div>
-    <div class="tsum" id="teamSum"></div>
-    <div id="teamRows"></div>
-  </div>
-</div>
 </div>
 </div>
 
 <div class="logRow">
 <input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
 <button class="logBtn" id="addBtn">+ Log a submission</button>
-<button class="sendBtn" id="sendBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send my work</button>
 <p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
 <div class="recentList" id="recentList"></div>
 </div>
@@ -537,44 +433,14 @@
 </div>
 </div>
 
-<div id="viewTeam" class="view hidden">
-<div class="dashboardInner">
-
-<div class="team" id="teamCard2">
-  <div class="th">
-    <h2>Team</h2>
-    <div style="display:flex;gap:6px">
-      <button class="impBtn" id="syncBtn2"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Sync</button>
-    </div>
-  </div>
-  <div>
-    <div class="synced" id="syncedAt2"></div>
-    <div class="tsum" id="teamSum2"></div>
-    <div id="teamRows2"></div>
-  </div>
-</div>
-</div>
-</div>
-
 <div id="viewAnalytics" class="view hidden">
 <div class="dashboardInner">
-
-<div class="analyticsCard hidden" id="qaCard">
-  <div class="eyebrow">QA pass rate</div>
-  <div class="qaPct" id="qaPctVal">0%</div>
-  <div class="qaSub" id="qaPctSub"></div>
-</div>
 
 <div class="analyticsCard">
   <div class="periodToggle" id="periodToggle">
     <button class="periodBtn active" data-gran="daily">Daily</button>
     <button class="periodBtn" data-gran="weekly">Weekly</button>
     <button class="periodBtn" data-gran="monthly">Monthly</button>
-  </div>
-  <div class="periodToggle hidden" id="sourceToggle" style="margin-top:8px">
-    <button class="periodBtn active" data-src="combined">Combined</button>
-    <button class="periodBtn" data-src="mine">Mine</button>
-    <button class="periodBtn" data-src="team">Team</button>
   </div>
 </div>
 
@@ -595,7 +461,7 @@
 <div class="dashboardInner">
 <div class="settingsCard">
   <div class="settingsRow">
-    <div class="settingsLbl">Pay rate<small id="setRateSub">per QA'd track</small></div>
+    <div class="settingsLbl">Pay rate<small>per track</small></div>
     <button class="settingsVal" id="setRateBtn">$0.00</button>
   </div>
   <div class="settingsRow">
@@ -605,10 +471,6 @@
   <div class="settingsRow">
     <div class="settingsLbl">Exchange rate<small>USD → PHP</small></div>
     <button class="settingsVal" id="setPhpBtn">₱0.00</button>
-  </div>
-  <div class="settingsRow hidden" id="setTcrateRow">
-    <div class="settingsLbl">Colleague pay<small>per track they log</small></div>
-    <button class="settingsVal" id="setTcrateBtn">$0.00</button>
   </div>
   <div class="settingsRow">
     <div class="settingsLbl">Account<small id="setEmailSub"></small></div>
@@ -643,19 +505,15 @@
   window.dispatchEvent(new Event('sb-ready'));
 </script>
 <script>
-// capture invite/recovery intent from the URL hash BEFORE the module script's
-// supabase-js client (deferred, runs after this classic script) processes and
-// clears it — this runs synchronously at parse time, ahead of any module script.
+// capture password-recovery intent from the URL hash BEFORE the module
+// script's supabase-js client (deferred, runs after this classic script)
+// processes and clears it — this runs synchronously at parse time, ahead of
+// any module script.
 const AUTH_FLOW_TYPE=(()=>{try{return new URLSearchParams(location.hash.replace(/^#/,'')).get('type');}catch(e){return null;}})();
-// role chosen on the landing page, carried through a Google OAuth redirect
-// (a full page reload) via a query param, since an in-memory JS variable
-// wouldn't survive that round trip the way it does for the email flow
-const ROLE_FROM_REDIRECT=(()=>{try{return new URLSearchParams(location.search).get('role')||null;}catch(e){return null;}})();
 
-const defaultState=()=>({role:'member',name:'',rate:2.00,tcrate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,
-  team:{reports:{},paid:{}},songs:[]});
+const defaultState=()=>({name:'',rate:2.00,goal:24,php:56.50,songs:[]});
 let state=defaultState();
-let myId=null,myEmail=null,myLeadId=null;
+let myId=null,myEmail=null;
 let showAll=false;
 
 const $=id=>document.getElementById(id);
@@ -666,12 +524,8 @@ const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMo
 function normalizeState(s){
   s=s||{};
   if(!s.goal)s.goal=24;
-  if(!s.tcrate)s.tcrate=2.00;
-  if(!('pending'in s))s.pending=0;
-  if(!('failed'in s))s.failed=0;
-  if(!('returned'in s))s.returned=0;
+  if(!s.rate)s.rate=2.00;
   if(!s.php)s.php=56.50;
-  if(!s.team)s.team={reports:{},paid:{}};
   if(!Array.isArray(s.songs))s.songs=[];
   return s;
 }
@@ -687,14 +541,14 @@ async function load(){
   render();
   fetchRate();
   const {data:{session}}=await sb.auth.getSession();
-  if(session&&(AUTH_FLOW_TYPE==='invite'||AUTH_FLOW_TYPE==='recovery')){
-    showSetPassword(AUTH_FLOW_TYPE);
+  if(session&&AUTH_FLOW_TYPE==='recovery'){
+    showSetPassword();
     return;
   }
   if(session){
     await enterApp(session);
   }else{
-    showRoleChoice();
+    showAuth();
   }
   sb.auth.onAuthStateChange((event)=>{
     if(event==='SIGNED_OUT')location.reload();
@@ -702,48 +556,27 @@ async function load(){
 }
 
 // ---- profile row (identity) ----
-async function ensureOwnProfile(user,defaultRole){
+async function ensureOwnProfile(user){
   const {data:existing}=await sb.from('profiles').select('*').eq('id',user.id).maybeSingle();
   if(existing)return existing;
-  const row={id:user.id,role:defaultRole,name:defaultRole==='lead'?'Jun':null,email:user.email,lead_id:null,blob:null,updated:Date.now()};
+  const row={id:user.id,name:null,email:user.email,blob:null,updated:Date.now()};
   await sb.from('profiles').insert(row);
   return row;
-}
-// there's exactly one lead in this app — find and attach to them server-side
-// (never via a client-side RLS policy, which would expose the lead's own
-// private blob/email to any self-registering member's query)
-async function tryJoinLead(accessToken,currentRow){
-  try{
-    const res=await fetch('/api/join',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+accessToken}});
-    if(res.ok){
-      const{data:fresh}=await sb.from('profiles').select('*').eq('id',currentRow.id).maybeSingle();
-      if(fresh)return fresh;
-    }
-  }catch(e){/* offline or no lead yet — proceed with what we have, retried on next load */}
-  return currentRow;
 }
 
 async function enterApp(session){
   myId=session.user.id;
   myEmail=session.user.email;
   showLoading('Loading your data…');
-  let row=await ensureOwnProfile(session.user,ROLE_FROM_REDIRECT||chosenRole||'lead');
-  if(row.role==='member'&&!row.lead_id){
-    // self-registered before Jun existed, or a previous join attempt was
-    // offline — retry silently; harmless no-op once already linked
-    row=await tryJoinLead(session.access_token,row);
-  }
-  myLeadId=row.lead_id||null;
+  let row=await ensureOwnProfile(session.user);
   state=normalizeState(row.blob?JSON.parse(row.blob):{});
-  state.role=row.role;
   state.name=row.name||myEmail;
-  if(!state.rate)state.rate=state.role==='lead'?3.13:2.00;
   hideLoading();
-  hideRoleChoice();hideAuth();hideSetPassword();
-  if(row.role==='member'&&!row.name){
+  hideAuth();hideSetPassword();
+  if(!row.name){
     const meta=session.user.user_metadata||{};
     const suggested=meta.full_name||meta.name||'';
-    askText('Your name','Jun\'s app uses this name to track your payout — use the name he knows you by.',suggested,async v=>{
+    askText('Your name','Track It uses this name to label your annotation log.',suggested,async v=>{
       const nm=(v.trim()||myEmail.split('@')[0]).slice(0,20);
       state.name=nm;
       await sb.from('profiles').update({name:nm}).eq('id',myId);
@@ -752,28 +585,17 @@ async function enterApp(session){
   }
   render();
   fetchRate();
-  if(state.role!=='member')fetchTeam();
 }
 
 // ---- auth screens ----
-let chosenRole=null;
-function showRoleChoice(){$('roleChoice').classList.add('show');}
-function hideRoleChoice(){$('roleChoice').classList.remove('show');}
-function hideAuth(){$('auth').classList.remove('show');}
-function showAuthStep(role){
-  chosenRole=role;
-  $('authTitle').textContent=role==='lead'?'Team Lead':'Team Member';
+function showAuth(){
   $('authEmail').value='';$('authPassword').value='';
   $('authMsg').textContent='';
   $('auth').classList.add('show');
 }
-$('roleChoiceLead').addEventListener('click',()=>{hideRoleChoice();showAuthStep('lead');});
-$('roleChoiceMember').addEventListener('click',()=>{hideRoleChoice();showAuthStep('member');});
-$('authBack').addEventListener('click',()=>{hideAuth();showRoleChoice();});
+function hideAuth(){$('auth').classList.remove('show');}
 // one "Continue" for both a returning account and a brand-new one: try
-// logging in first (works for anyone who already exists, regardless of
-// which role button they happened to click); only fall back to creating a
-// new account — tagged with the role chosen in step one — if no such
+// logging in first; only fall back to creating a new account if no such
 // login succeeds.
 async function doContinue(){
   const email=$('authEmail').value.trim();
@@ -801,14 +623,14 @@ async function doContinue(){
       msg.textContent='Check your email to confirm your account, then continue again.';
       return;
     }
-    await ensureOwnProfile(signupData.user,chosenRole);
+    await ensureOwnProfile(signupData.user);
     await enterApp(signupData.session);
   }catch(e){hideLoading();msg.textContent='Something went wrong — try again';}
 }
 $('authBtn').addEventListener('click',doContinue);
 $('authPassword').addEventListener('keydown',e=>{if(e.key==='Enter')doContinue();});
 $('googleBtn').addEventListener('click',async()=>{
-  const redirectTo=location.origin+location.pathname+'?role='+encodeURIComponent(chosenRole||'');
+  const redirectTo=location.origin+location.pathname;
   const{error}=await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
   if(error){$('authMsg').style.color='var(--fail)';$('authMsg').textContent=error.message;}
 });
@@ -822,10 +644,10 @@ $('authForgot').addEventListener('click',async()=>{
   msg.textContent='If that account exists, a reset email is on its way.';
 });
 
-function showSetPassword(flowType){
+function showSetPassword(){
   $('setpw').classList.add('show');
-  $('setpwTitle').textContent=flowType==='invite'?'Welcome — set your password':'Reset your password';
-  $('setpwSub').textContent=flowType==='invite'?'Finish joining your team by choosing a password.':'Choose a new password to finish resetting.';
+  $('setpwTitle').textContent='Reset your password';
+  $('setpwSub').textContent='Choose a new password to finish resetting.';
   $('setpwMsg').textContent='';
 }
 function hideSetPassword(){$('setpw').classList.remove('show');}
@@ -858,12 +680,11 @@ $('sidebarBackdrop').addEventListener('click',closeSidebar);
 let currentView='dashboard';
 function showView(view){
   currentView=view;
-  ['dashboard','worklog','team','analytics','settings'].forEach(v=>{
+  ['dashboard','worklog','analytics','settings'].forEach(v=>{
     $('view'+(v==='worklog'?'WorkLog':v[0].toUpperCase()+v.slice(1))).classList.toggle('hidden',v!==view);
   });
   $('navDashboard').classList.toggle('active',view==='dashboard');
   $('navWorkLog').classList.toggle('active',view==='worklog');
-  $('navTeam').classList.toggle('active',view==='team');
   $('navAnalytics').classList.toggle('active',view==='analytics');
   $('navSettings').classList.toggle('active',view==='settings');
   if(view==='analytics')renderAnalytics();
@@ -871,14 +692,12 @@ function showView(view){
 }
 $('navDashboard').addEventListener('click',()=>showView('dashboard'));
 $('navWorkLog').addEventListener('click',()=>showView('worklog'));
-$('navTeam').addEventListener('click',()=>showView('team'));
 $('navAnalytics').addEventListener('click',()=>showView('analytics'));
 $('navSettings').addEventListener('click',()=>showView('settings'));
 showView('dashboard');
 
 // ---- analytics: daily/weekly/monthly progress charts ----
 let analyticsGran='daily';
-let analyticsSrc='combined';
 function periodBuckets(gran,count){
   const now=new Date();
   const buckets=[];
@@ -905,24 +724,14 @@ function periodBuckets(gran,count){
   }
   return buckets;
 }
-// counts within [start,end) — own tracks by exact timestamp, team tracks by
-// day (team data only has day-level granularity, see periodStart's comment)
+// count within [start,end), by exact log timestamp
 function bucketCounts(bucket){
-  let own=0;
+  let n=0;
   state.songs.forEach(s=>{
     const ts=s.ts||dOf(s.date).getTime();
-    if(ts>=bucket.start.getTime()&&ts<bucket.end.getTime())own++;
+    if(ts>=bucket.start.getTime()&&ts<bucket.end.getTime())n++;
   });
-  let team=0;
-  if(state.role!=='member'&&state.team&&state.team.reports){
-    Object.values(state.team.reports).forEach(days=>{
-      for(const[d,c]of Object.entries(days)){
-        const dt=dOf(d);
-        if(dt>=bucket.start&&dt<bucket.end)team+=parseInt(c,10)||0;
-      }
-    });
-  }
-  return{own,team};
+  return n;
 }
 function renderBarChart(containerId,buckets,values,opts){
   const w=560,h=150,padL=4,padR=4,padB=20,padT=22;
@@ -959,27 +768,10 @@ function renderBarChart(containerId,buckets,values,opts){
   });
 }
 function renderAnalytics(){
-  const lead=state.role!=='member';
-  $('qaCard').classList.toggle('hidden',!lead);
-  $('sourceToggle').classList.toggle('hidden',!lead);
-  if(lead){
-    const nAll=state.songs.length;
-    const unpaidN=state.pending+state.failed+state.returned;
-    const confirmed=Math.max(0,nAll-unpaidN);
-    const pct=nAll?Math.round(confirmed/nAll*100):0;
-    $('qaPctVal').textContent=pct+'%';
-    $('qaPctSub').textContent=confirmed+' confirmed of '+nAll+' total logged';
-  }
   const count=analyticsGran==='daily'?7:analyticsGran==='weekly'?8:6;
   const buckets=periodBuckets(analyticsGran,count);
-  const tcut=Math.max(0,state.rate-state.tcrate);
-  const bucketData=buckets.map(bucketCounts);
-  const src=lead?analyticsSrc:'mine';
-  const counts=bucketData.map(c=>src==='mine'?c.own:src==='team'?c.team:c.own+c.team);
-  const earnings=bucketData.map(c=>{
-    const ownE=c.own*state.rate,teamE=c.team*tcut;
-    return src==='mine'?ownE:src==='team'?teamE:ownE+teamE;
-  });
+  const counts=buckets.map(bucketCounts);
+  const earnings=counts.map(n=>n*state.rate);
   renderBarChart('countChart',buckets,counts,{color:'var(--pass)',format:v=>v+' track'+(v===1?'':'s')});
   renderBarChart('earningsChart',buckets,earnings,{color:'var(--gold)',format:v=>money(v)});
 }
@@ -989,22 +781,12 @@ $('periodToggle').addEventListener('click',e=>{
   $('periodToggle').querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
   renderAnalytics();
 });
-$('sourceToggle').addEventListener('click',e=>{
-  const b=e.target.closest('[data-src]');if(!b)return;
-  analyticsSrc=b.dataset.src;
-  $('sourceToggle').querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
-  renderAnalytics();
-});
 
 // ---- settings view ----
 function renderSettings(){
-  const lead=state.role!=='member';
   $('setRateBtn').textContent=money(state.rate);
-  $('setRateSub').textContent=lead?'per QA\'d track':'per track';
   $('setGoalBtn').textContent=state.goal;
   $('setPhpBtn').textContent=peso(state.php);
-  $('setTcrateRow').classList.toggle('hidden',!lead);
-  if(lead)$('setTcrateBtn').textContent=money(state.tcrate);
   $('setEmailSub').textContent=myEmail||'';
 }
 $('setRateBtn').addEventListener('click',()=>$('rateBtn').click());
@@ -1012,12 +794,6 @@ $('setGoalBtn').addEventListener('click',()=>$('goalBtn').click());
 $('setPhpBtn').addEventListener('click',()=>{
   askNum('USD → PHP exchange rate','Pesos per $1. Tap ↻ on the dashboard to fetch the live rate; set it manually here to override.',state.php,n=>{
     state.php=n;rateLive=false;save();render();
-  });
-});
-$('setTcrateBtn').addEventListener('click',()=>{
-  askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
-    if(n>=state.rate){toast('Must be below your own rate','var(--muted)');return;}
-    state.tcrate=n;save();render();
   });
 });
 function askPassword(title,desc,cb){
@@ -1051,9 +827,7 @@ function save(){
 }
 async function pushState(){
   if(!myId)return;
-  const blob=JSON.stringify({rate:state.rate,tcrate:state.tcrate,goal:state.goal,
-    pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,
-    team:state.team,songs:state.songs});
+  const blob=JSON.stringify({rate:state.rate,goal:state.goal,php:state.php,songs:state.songs});
   try{await sb.from('profiles').update({blob,updated:Date.now()}).eq('id',myId);}
   catch(e){/* offline — local state holds, next save() retries */}
 }
@@ -1066,59 +840,12 @@ async function cloudSyncNow(){
     const{data:row,error}=await sb.from('profiles').select('*').eq('id',myId).single();
     if(error||!row)throw error||new Error('no row');
     const fresh=normalizeState(row.blob?JSON.parse(row.blob):{});
-    fresh.role=row.role;fresh.name=row.name||myEmail;
+    fresh.name=row.name||myEmail;
     state=fresh;
     render();
-    if(state.role!=='member')await fetchTeam(false);
     toast('Synced ✓');
   }catch(e){toast('Sync failed — check connection','var(--muted)');}
   if(icon)icon.classList.remove('spin');
-}
-
-async function sendToJun(){
-  const days={};
-  state.songs.forEach(s=>{days[s.date]=(days[s.date]||0)+1;});
-  if(!Object.keys(days).length){toast('Nothing logged yet','var(--muted)');return;}
-  try{
-    const{data:{session}}=await sb.auth.getSession();
-    const res=await fetch('/api/counts',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token},
-      body:JSON.stringify({days})});
-    const j=await res.json();
-    if(res.ok){toast('Sent to Jun ✓');return;}
-    toast(j.error||'Could not send — try again','var(--fail)');
-  }catch(e){toast('Offline — try again when connected','var(--fail)');}
-}
-
-let teamSyncing=false;
-async function fetchTeam(notify){
-  if(!myId||teamSyncing)return;
-  teamSyncing=true;
-  try{
-    const{data:row,error}=await sb.from('rosters').select('*').eq('lead_id',myId).maybeSingle();
-    if(!error){
-      const reports=(row&&row.reports)||{};
-      for(const[name,days]of Object.entries(reports)){
-        state.team.reports[name]=days;
-        if(!(name in state.team.paid))state.team.paid[name]=0;
-      }
-      state.team.lastSync=Date.now();
-      save();render();
-      if(notify)toast('Team synced ✓');
-    }else if(notify)toast('Sync failed — try again','var(--muted)');
-  }catch(e){if(notify)toast('Offline — using last synced counts','var(--muted)');}
-  teamSyncing=false;
-}
-function syncAgo(){
-  const ts=state.team&&state.team.lastSync;
-  if(!ts)return 'not synced yet';
-  const s=Math.floor((Date.now()-ts)/1000);
-  if(s<60)return 'synced just now';
-  const m=Math.floor(s/60);
-  if(m<60)return 'synced '+m+' min ago';
-  const h=Math.floor(m/60);
-  if(h<24)return 'synced '+h+' hr'+(h>1?'s':'')+' ago';
-  const d=Math.floor(h/24);
-  return 'synced '+d+' day'+(d>1?'s':'')+' ago';
 }
 
 let rateLive=false;
@@ -1176,45 +903,21 @@ function render(){
     if((s.ts||dt.getTime())>=mo.getTime())nMonth++;
   });
   const nAll=state.songs.length;
-  const lead=state.role!=='member';
-  const unpaidN=lead?(state.pending+state.failed+state.returned):0;
 
-  // team cut: Jun earns (rate − colleague rate) per colleague track, summed by period
-  const tcut=Math.max(0,state.rate-state.tcrate);
-  let teamToday=0,teamWeek=0,teamMonth=0,teamAll=0;
-  if(lead&&state.team&&state.team.reports){
-    Object.values(state.team.reports).forEach(days=>{
-      for(const[d,c]of Object.entries(days)){
-        const n=parseInt(c,10)||0,dt=dOf(d);
-        teamAll+=n;
-        if(d===t)teamToday+=n;
-        if(dt>=wk)teamWeek+=n;
-        if(dt>=mo)teamMonth+=n;
-      }
-    });
-  }
-
-  const earnToday=nToday*state.rate + teamToday*tcut;
-  const earnWeek =nWeek*state.rate  + teamWeek*tcut;
-  const earnMonth=nMonth*state.rate + teamMonth*tcut;
-  const confirmedAll=Math.max(0,(nAll-unpaidN)*state.rate) + teamAll*tcut;
+  const earnToday=nToday*state.rate;
+  const earnWeek =nWeek*state.rate;
+  const earnMonth=nMonth*state.rate;
+  const earnAll=nAll*state.rate;
 
   $('todayAmt').textContent=money(earnToday);
-  if(lead){
-    const pendVal=state.pending*state.rate;
-    const teamNote=teamToday>0?' · incl. '+money(teamToday*tcut)+' team cut':'';
-    $('todaySub').innerHTML=nToday+' logged today'+teamNote+' · <b>'+money(pendVal)+'</b> waiting in QA';
-  }else{
-    $('todaySub').innerHTML='<b>'+nToday+'</b> track'+(nToday===1?'':'s')+' logged today';
-  }
+  $('todaySub').innerHTML='<b>'+nToday+'</b> track'+(nToday===1?'':'s')+' logged today';
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
-  $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=nToday+teamToday;
-  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=nWeek+teamWeek;
-  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=nMonth+teamMonth;
-  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=nAll+teamAll;
-  $('rateBtn').textContent=money(state.rate)+(lead?'/QA':'/track');
+  $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=nToday;
+  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=nWeek;
+  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=nMonth;
+  $('allAmt').textContent=money(earnAll);$('allPhp').textContent=peso(earnAll*state.php);$('allCount').textContent=nAll;
+  $('rateBtn').textContent=money(state.rate)+'/track';
   $('totalCount').textContent=nAll?nAll+' logged':'';
-  if(lead){$('pendIn').value=state.pending;$('failIn').value=state.failed;$('retIn').value=state.returned;}
 
   const pct=Math.min(100,(nToday/state.goal)*100);
   const fill=$('goalFill');fill.style.width=pct+'%';
@@ -1223,64 +926,13 @@ function render(){
     ?'<b style="color:var(--pass)">Target hit! '+nToday+' / '+state.goal+'</b>'
     :'<b>'+nToday+'</b> / '+state.goal+' daily target — '+(state.goal-nToday)+' to go';
 
-  // role-aware sections
   $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' annotation log';
   $('sidebarUserName').textContent=state.name||'';
   $('sidebarUserEmail').textContent=myEmail||'';
-  document.querySelector('.pendbox').classList.toggle('hidden',!lead);
-  $('teamCard').classList.toggle('hidden',!lead);
-  $('navTeam').classList.toggle('hidden',!lead);
-  $('sendBtn').style.display=lead?'none':'flex';
-  if(lead)renderTeam();
 
   renderSongs();
   renderRecent();
   renderSettings();
-}
-
-function renderTeam(){
-  const cut=Math.max(0,state.rate-state.tcrate);
-  const names=Object.keys(state.team.reports);
-  const syncedText=syncAgo();
-  $('syncedAt').textContent=syncedText;
-  $('syncedAt2').textContent=syncedText;
-  const now=new Date(),wk=weekStart(now),per=periodStart(now),t=todayStr();
-  let totalN=0;
-  let rows='';
-  names.forEach(name=>{
-    const days=state.team.reports[name];
-    let n=0,dayN=0,weekN=0,periodN=0;
-    for(const[d,c]of Object.entries(days)){
-      const cnt=parseInt(c,10)||0,dt=dOf(d);
-      n+=cnt;
-      if(d===t)dayN+=cnt;
-      if(dt>=wk)weekN+=cnt;
-      if(dt>=per)periodN+=cnt;
-    }
-    totalN+=n;
-    const amount=periodN*cut;
-    rows+='<div class="trow"><div class="tname"><span class="tnameText">'+esc(name)+'</span>'
-      +'<small>Day '+dayN+' · Week '+weekN+' · Period '+periodN+'</small></div>'
-      +'<div class="owe"><b>'+money(amount)+'</b><span>'+peso(amount*state.php)+'</span></div>'
-      +'</div>';
-  });
-  const sumPrefix=names.length?('Your cut: <b>'+money(totalN*cut)+'</b> · '):'';
-  const emptyMsg='<div class="none">No team counts yet. Team members can sign up themselves and tap "Send my work" once they\'re in.</div>';
-  $('teamSum').innerHTML=sumPrefix+'they earn <button id="tcrateBtn">'+money(state.tcrate)+'/track</button>';
-  $('teamSum2').innerHTML=sumPrefix+'they earn <button id="tcrateBtn2">'+money(state.tcrate)+'/track</button>';
-  $('teamRows').innerHTML=rows||emptyMsg;
-  $('teamRows2').innerHTML=rows||emptyMsg;
-  const bindRateBtn=id=>{
-    const tb=$(id);
-    if(tb)tb.addEventListener('click',()=>{
-      askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
-        if(n>=state.rate){toast('Must be below your own rate','var(--muted)');return;}
-        state.tcrate=n;save();render();
-      });
-    });
-  };
-  bindRateBtn('tcrateBtn');
-  bindRateBtn('tcrateBtn2');
 }
 
 let openDays=null; // lazily initialized: today open, past days collapsed
@@ -1413,56 +1065,26 @@ $('addBtn').addEventListener('click',()=>{
 });
 $('songIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('addBtn').click();});
 
-$('sendBtn').addEventListener('click',()=>{
-  if(!state.songs.length){toast('Nothing logged yet','var(--muted)');return;}
-  sendToJun();
-});
-
 function exportCSV(){
   const now=new Date(),ps=periodStart(now),pe=new Date(ps.getFullYear(),ps.getMonth()+1,23);
-  const cut=Math.max(0,state.rate-state.tcrate);
   const fmtD=d=>d.toISOString().slice(0,10);
   const rows=[];
   rows.push(['Track It — Earnings Report']);
   rows.push(['Generated',new Date().toLocaleString()]);
   rows.push(['Pay period',fmtD(ps)+' to '+fmtD(pe)]);
-  rows.push(['Your QA rate (USD)',state.rate.toFixed(2)]);
+  rows.push(['Your rate (USD)',state.rate.toFixed(2)]);
   rows.push(['Exchange rate (PHP per USD)',state.php.toFixed(2)]);
   rows.push([]);
-  // Jun's own daily log
-  rows.push(['YOUR SUBMISSIONS']);
+  rows.push(['SUBMISSIONS']);
   rows.push(['Date','Track','Time']);
   state.songs.slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(s=>{
     const time=s.ts?new Date(s.ts).toLocaleString():'';
     rows.push([s.date,s.title,time]);
   });
   rows.push([]);
-  rows.push(['Your total tracks',state.songs.length]);
-  rows.push(['Pending QA',state.pending]);
-  rows.push(['Failed QA',state.failed]);
-  rows.push(['Returned',state.returned]);
-  const ownConfirmed=Math.max(0,state.songs.length-(state.pending+state.failed+state.returned));
-  rows.push(['Your confirmed earnings (USD)',(ownConfirmed*state.rate).toFixed(2)]);
-  rows.push([]);
-  // team
-  const names=Object.keys(state.team.reports||{});
-  if(names.length){
-    rows.push(['TEAM']);
-    rows.push(['Name','Tracks','They earn (USD)','Your cut (USD)','Paid (USD)','Still owed (USD)']);
-    let tTracks=0,tCut=0;
-    names.forEach(name=>{
-      const days=state.team.reports[name];
-      let n=0;for(const c of Object.values(days))n+=c;
-      const earned=n*state.tcrate, mycut=n*cut, paid=state.team.paid[name]||0, owed=Math.max(0,earned-paid);
-      tTracks+=n;tCut+=mycut;
-      rows.push([name,n,earned.toFixed(2),mycut.toFixed(2),paid.toFixed(2),owed.toFixed(2)]);
-    });
-    rows.push([]);
-    rows.push(['Team tracks total',tTracks]);
-    rows.push(['Your total cut from team (USD)',tCut.toFixed(2)]);
-    rows.push(['YOUR GRAND TOTAL (USD)',(ownConfirmed*state.rate+tCut).toFixed(2)]);
-    rows.push(['YOUR GRAND TOTAL (PHP)',((ownConfirmed*state.rate+tCut)*state.php).toFixed(2)]);
-  }
+  rows.push(['Total tracks',state.songs.length]);
+  rows.push(['Total earnings (USD)',(state.songs.length*state.rate).toFixed(2)]);
+  rows.push(['Total earnings (PHP)',(state.songs.length*state.rate*state.php).toFixed(2)]);
   const csv=rows.map(r=>r.map(cell=>{
     const s=String(cell==null?'':cell);
     return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
@@ -1476,8 +1098,6 @@ function exportCSV(){
   toast('Report exported ⬇');
 }
 $('exportBtn').addEventListener('click',exportCSV);
-$('syncBtn').addEventListener('click',()=>fetchTeam(true));
-$('syncBtn2').addEventListener('click',()=>fetchTeam(true));
 
 $('songList').addEventListener('click',e=>{
   const hdr=e.target.closest('.day-label');
@@ -1502,27 +1122,8 @@ $('songList').addEventListener('click',e=>{
   });
 });
 
-function setCounter(key,n){
-  n=Math.max(0,Math.floor(n)||0);
-  const prev=state[key];
-  state[key]=n;
-  save();render();
-  if(key==='pending'&&prev-n>0)toast((prev-n)+' cleared QA');
-  if(key==='failed'&&n-prev>0)toast((n-prev)+' failed — deducted','var(--fail)');
-  if(key==='returned'&&prev-n>0)toast((prev-n)+' resubmitted','var(--ret)');
-}
-document.querySelector('.pendbox').addEventListener('click',e=>{
-  const inc=e.target.closest('[data-inc]');
-  if(inc){setCounter(inc.dataset.inc,state[inc.dataset.inc]+1);return;}
-  const dec=e.target.closest('[data-dec]');
-  if(dec){setCounter(dec.dataset.dec,state[dec.dataset.dec]-1);return;}
-});
-document.querySelectorAll('.pendbox .val').forEach(inp=>{
-  inp.addEventListener('change',e=>setCounter(e.target.dataset.key,parseInt(e.target.value,10)));
-});
-
 $('rateBtn').addEventListener('click',()=>{
-  askNum('Pay per passed QA','Amount in USD you earn for each track that clears QA.',state.rate,n=>{
+  askNum('Pay per track','Amount in USD you earn for each track you submit.',state.rate,n=>{
     state.rate=n;save();render();
   });
 });
