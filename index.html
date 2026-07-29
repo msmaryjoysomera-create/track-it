@@ -250,9 +250,6 @@
   .trow .owe{margin-left:auto;text-align:right;flex-shrink:0}
   .trow .owe b{font-family:var(--mono);font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;display:block}
   .trow .owe span{font-size:10.5px;color:var(--muted);font-family:var(--mono)}
-  .trow .payBtn{background:var(--pass-dim);border:1px solid rgba(78,214,167,.3);color:var(--pass);
-    border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);flex-shrink:0}
-  .trow .payBtn:disabled{opacity:.35;cursor:default}
   .team .none{font-size:12.5px;color:var(--muted);padding:8px 0 10px;line-height:1.5}
   .team .synced{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-bottom:8px}
   .expBtn{width:100%;background:var(--card-2);border:1px solid var(--line);color:var(--text);
@@ -1246,18 +1243,24 @@ function renderTeam(){
   const syncedText=syncAgo();
   $('syncedAt').textContent=syncedText;
   $('syncedAt2').textContent=syncedText;
+  const now=new Date(),wk=weekStart(now),per=periodStart(now),t=todayStr();
   let totalN=0;
   let rows='';
   names.forEach(name=>{
     const days=state.team.reports[name];
-    let n=0,today=0;
-    for(const[d,c]of Object.entries(days)){n+=c;if(d===todayStr())today=c;}
+    let n=0,dayN=0,weekN=0,periodN=0;
+    for(const[d,c]of Object.entries(days)){
+      const cnt=parseInt(c,10)||0,dt=dOf(d);
+      n+=cnt;
+      if(d===t)dayN+=cnt;
+      if(dt>=wk)weekN+=cnt;
+      if(dt>=per)periodN+=cnt;
+    }
     totalN+=n;
-    const owed=Math.max(0,n*state.tcrate-(state.team.paid[name]||0));
+    const amount=periodN*cut;
     rows+='<div class="trow"><div class="tname">'+esc(name)
-      +'<small>'+n+' tracks'+(today?' · '+today+' today':'')+' · your cut '+money(n*cut)+'</small></div>'
-      +'<div class="owe"><b>'+money(owed)+'</b><span>'+peso(owed*state.php)+' owed</span></div>'
-      +'<button class="payBtn" data-pay="'+esc(name)+'"'+(owed<=0?' disabled':'')+'>Mark paid</button>'
+      +'<small>Day '+dayN+' · Week '+weekN+' · Period '+periodN+'</small></div>'
+      +'<div class="owe"><b>'+money(amount)+'</b><span>'+peso(amount*state.php)+'</span></div>'
       +'</div>';
   });
   const sumPrefix=names.length?('Your cut: <b>'+money(totalN*cut)+'</b> · '):'';
@@ -1474,22 +1477,6 @@ function exportCSV(){
 $('exportBtn').addEventListener('click',exportCSV);
 $('syncBtn').addEventListener('click',()=>fetchTeam(true));
 $('syncBtn2').addEventListener('click',()=>fetchTeam(true));
-
-function handleTeamRowClick(e){
-  const pb=e.target.closest('[data-pay]');
-  if(!pb||pb.disabled)return;
-  const name=pb.dataset.pay;
-  const days=state.team.reports[name]||{};
-  let n=0;for(const c of Object.values(days))n+=c;
-  const owed=Math.max(0,n*state.tcrate-(state.team.paid[name]||0));
-  askChoice('Mark '+name+' as paid?',money(owed)+' ('+peso(owed*state.php)+') will be recorded as settled.','Mark paid','Cancel',()=>{
-    state.team.paid[name]=n*state.tcrate;
-    save();render();
-    toast('Paid '+name+' '+money(owed));
-  });
-}
-$('teamRows').addEventListener('click',handleTeamRowClick);
-$('teamRows2').addEventListener('click',handleTeamRowClick);
 
 $('songList').addEventListener('click',e=>{
   const hdr=e.target.closest('.day-label');
