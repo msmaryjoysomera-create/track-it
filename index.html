@@ -155,8 +155,9 @@
     display:flex;align-items:center;justify-content:space-between;gap:8px}
   .stat .v{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--text)}
   .statCount{text-align:right;flex-shrink:0}
-  .statCount .cnum{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
+  .statCount .cnum{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
   .statCount .clbl{font-size:11px;color:var(--muted);margin-top:3px}
+  .stat .pRange{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap}
 
   .list-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
   .list-head h2{font-size:14px;font-weight:600}
@@ -444,7 +445,7 @@
     <div class="statCount"><div class="cnum" id="weekCount">0</div><div class="clbl">logged</div></div>
   </div>
   <div class="stat">
-    <div class="statInfo"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div></div>
+    <div class="statInfo"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="pRange" id="monthRange"></div></div>
     <div class="statCount"><div class="cnum" id="monthCount">0</div><div class="clbl">logged</div></div>
   </div>
   <div class="stat">
@@ -968,6 +969,9 @@ function render(){
   $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=nToday;
   $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=nWeek;
   $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=nMonth;
+  const periodEnd=new Date(mo.getFullYear(),mo.getMonth()+1,23);
+  const fmtPeriod=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  $('monthRange').textContent=fmtPeriod(mo)+'–'+fmtPeriod(periodEnd);
   $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=nAll;
   $('rateBtn').textContent=money(state.rate)+'/track';
   $('totalCount').textContent=nAll?nAll+' logged':'';
