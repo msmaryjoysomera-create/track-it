@@ -153,7 +153,8 @@
   .sendBtn:active{transform:scale(.98)}
   .hidden{display:none!important}
 
-  .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .logRow{margin-top:4px}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px}
   .stat .v{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--text)}
   .stat .n{font-size:11px;color:var(--muted);margin-top:2px}
@@ -333,7 +334,8 @@
     .dashboardInner{max-width:760px}
     #viewDashboard .dashboardInner{max-width:960px}
     .dashTop{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:start}
-    .dashRight .grid{grid-template-columns:1fr;gap:12px;margin-bottom:0}
+    .dashRight .grid{gap:12px;margin-bottom:16px}
+    .logRow{margin-top:12px}
   }
   @media (min-width:1280px){
     body{max-width:1440px;padding:44px 56px 64px}
@@ -468,19 +470,14 @@
   </div>
 </section>
 
-<input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
-<button class="logBtn" id="addBtn">+ Log a submission</button>
-<button class="sendBtn" id="sendBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send my counts to lead</button>
-<p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
 </div>
 
 <div class="dashRight">
 <div class="grid">
+  <div class="stat"><div class="eyebrow">Today</div><div class="v" id="cardTodayAmt">$0.00</div><div class="p" id="cardTodayPhp"></div><div class="n" id="cardTodayN"></div></div>
   <div class="stat"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div><div class="n" id="weekN"></div></div>
   <div class="stat"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="n" id="monthN"></div></div>
   <div class="stat"><div class="eyebrow">All time</div><div class="v" id="allAmt">$0.00</div><div class="p" id="allPhp"></div><div class="n" id="allN"></div></div>
-</div>
-</div>
 </div>
 
 <div class="team hidden" id="teamCard">
@@ -495,6 +492,15 @@
     <div class="tsum" id="teamSum"></div>
     <div id="teamRows"></div>
   </div>
+</div>
+</div>
+</div>
+
+<div class="logRow">
+<input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
+<button class="logBtn" id="addBtn">+ Log a submission</button>
+<button class="sendBtn" id="sendBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send my counts to lead</button>
+<p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
 </div>
 </div>
 </div>
@@ -1148,6 +1154,7 @@ function render(){
     $('todaySub').innerHTML='<b>'+nToday+'</b> track'+(nToday===1?'':'s')+' logged today';
   }
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
+  $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayN').textContent=nToday+' logged'+(teamToday?' +'+teamToday+' team':'');
   $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekN').textContent=nWeek+' logged'+(teamWeek?' +'+teamWeek+' team':'');
   $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);
   const ps=periodStart(now),pe=new Date(ps.getFullYear(),ps.getMonth()+1,23);
@@ -1198,7 +1205,7 @@ function renderTeam(){
       +'</div>';
   });
   $('teamSum').innerHTML=(names.length?('Your cut: <b>'+money(totalN*cut)+'</b> · '):'')+'they earn <button id="tcrateBtn">'+money(state.tcrate)+'/track</button>';
-  $('teamRows').innerHTML=rows||'<div class="none">No team counts yet. Team members can sign up themselves and tap "Send my counts to Jun" once they\'re in.</div>';
+  $('teamRows').innerHTML=rows||'<div class="none">No team counts yet. Team members can sign up themselves and tap "Send my counts to lead" once they\'re in.</div>';
   const tb=$('tcrateBtn');
   if(tb)tb.addEventListener('click',()=>{
     askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
