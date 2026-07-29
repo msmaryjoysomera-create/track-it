@@ -30,6 +30,8 @@
     --pend-dim:rgba(127,166,240,.14);
     --fail:#F07A7A;
     --fail-dim:rgba(240,122,122,.13);
+    --ret:#D79BF0;
+    --ret-dim:rgba(215,155,240,.13);
     --radius:14px;
     --mono:'IBM Plex Mono',ui-monospace,monospace;
     --sans:'Space Grotesk',system-ui,sans-serif;
@@ -118,6 +120,23 @@
   .goal .cap button{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;
     text-decoration:underline dotted;font-family:var(--sans);padding:0}
   .goal .cap b{color:var(--text)}
+
+  .pendbox{background:rgba(0,0,0,.22);border:1px solid var(--line);
+    border-radius:12px;padding:4px 12px;position:relative;z-index:1}
+  .qrow{display:flex;align-items:center;gap:10px;padding:7px 0}
+  .qrow+.qrow{border-top:1px solid var(--line)}
+  .qrow .lbl{flex:1;font-size:12.5px;color:var(--text);line-height:1.3}
+  .qrow .lbl span{display:block;color:var(--muted);font-size:10.5px}
+  .step{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:rgba(0,0,0,.25)}
+  .step button{background:transparent;border:none;color:var(--text);font-size:18px;width:38px;height:38px;cursor:pointer;font-family:var(--mono)}
+  .step button:active{background:var(--card-2)}
+  .step .val{width:46px;text-align:center;font-family:var(--mono);font-size:17px;font-weight:600;
+    background:transparent;border:none;font-variant-numeric:tabular-nums}
+  .step .val:focus{outline:none;color:var(--text)}
+  .qrow.q-pend .val{color:var(--pend)}
+  .qrow.q-fail .val{color:var(--fail)}
+  .qrow.q-ret .val{color:var(--ret)}
+  input[type=number]::-webkit-inner-spin-button{display:none}
 
   /* quick log */
   .songIn{width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;
@@ -382,6 +401,34 @@
       <button id="goalBtn">edit target</button>
     </div>
   </div>
+  <div class="pendbox">
+    <div class="qrow q-pend">
+      <div class="lbl">Pending QA</div>
+      <div class="step">
+        <button data-dec="pending" aria-label="Decrease">−</button>
+        <input class="val" id="pendIn" data-key="pending" type="number" inputmode="numeric" min="0" value="0">
+        <button data-inc="pending" aria-label="Increase">+</button>
+      </div>
+    </div>
+    <div class="qrow q-fail">
+      <div class="lbl">Failed QA
+        <span>All time — these never pay</span></div>
+      <div class="step">
+        <button data-dec="failed" aria-label="Decrease">−</button>
+        <input class="val" id="failIn" data-key="failed" type="number" inputmode="numeric" min="0" value="0">
+        <button data-inc="failed" aria-label="Increase">+</button>
+      </div>
+    </div>
+    <div class="qrow q-ret">
+      <div class="lbl">Returned to you
+        <span>Current — unpaid until resubmitted</span></div>
+      <div class="step">
+        <button data-dec="returned" aria-label="Decrease">−</button>
+        <input class="val" id="retIn" data-key="returned" type="number" inputmode="numeric" min="0" value="0">
+        <button data-inc="returned" aria-label="Increase">+</button>
+      </div>
+    </div>
+  </div>
 </section>
 
 </div>
@@ -511,7 +558,7 @@
 // any module script.
 const AUTH_FLOW_TYPE=(()=>{try{return new URLSearchParams(location.hash.replace(/^#/,'')).get('type');}catch(e){return null;}})();
 
-const defaultState=()=>({name:'',rate:2.00,goal:24,php:56.50,songs:[]});
+const defaultState=()=>({name:'',rate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,songs:[]});
 let state=defaultState();
 let myId=null,myEmail=null;
 let showAll=false;
@@ -525,6 +572,9 @@ function normalizeState(s){
   s=s||{};
   if(!s.goal)s.goal=24;
   if(!s.rate)s.rate=2.00;
+  if(!('pending'in s))s.pending=0;
+  if(!('failed'in s))s.failed=0;
+  if(!('returned'in s))s.returned=0;
   if(!s.php)s.php=56.50;
   if(!Array.isArray(s.songs))s.songs=[];
   return s;
@@ -827,7 +877,8 @@ function save(){
 }
 async function pushState(){
   if(!myId)return;
-  const blob=JSON.stringify({rate:state.rate,goal:state.goal,php:state.php,songs:state.songs});
+  const blob=JSON.stringify({rate:state.rate,goal:state.goal,
+    pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,songs:state.songs});
   try{await sb.from('profiles').update({blob,updated:Date.now()}).eq('id',myId);}
   catch(e){/* offline — local state holds, next save() retries */}
 }
@@ -903,21 +954,24 @@ function render(){
     if((s.ts||dt.getTime())>=mo.getTime())nMonth++;
   });
   const nAll=state.songs.length;
+  const unpaidN=state.pending+state.failed+state.returned;
 
   const earnToday=nToday*state.rate;
   const earnWeek =nWeek*state.rate;
   const earnMonth=nMonth*state.rate;
-  const earnAll=nAll*state.rate;
+  const confirmedAll=Math.max(0,(nAll-unpaidN)*state.rate);
 
   $('todayAmt').textContent=money(earnToday);
-  $('todaySub').innerHTML='<b>'+nToday+'</b> track'+(nToday===1?'':'s')+' logged today';
+  const pendVal=state.pending*state.rate;
+  $('todaySub').innerHTML=nToday+' logged today · <b>'+money(pendVal)+'</b> waiting in QA';
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
   $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=nToday;
   $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=nWeek;
   $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=nMonth;
-  $('allAmt').textContent=money(earnAll);$('allPhp').textContent=peso(earnAll*state.php);$('allCount').textContent=nAll;
+  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=nAll;
   $('rateBtn').textContent=money(state.rate)+'/track';
   $('totalCount').textContent=nAll?nAll+' logged':'';
+  $('pendIn').value=state.pending;$('failIn').value=state.failed;$('retIn').value=state.returned;
 
   const pct=Math.min(100,(nToday/state.goal)*100);
   const fill=$('goalFill');fill.style.width=pct+'%';
@@ -1083,8 +1137,12 @@ function exportCSV(){
   });
   rows.push([]);
   rows.push(['Total tracks',state.songs.length]);
-  rows.push(['Total earnings (USD)',(state.songs.length*state.rate).toFixed(2)]);
-  rows.push(['Total earnings (PHP)',(state.songs.length*state.rate*state.php).toFixed(2)]);
+  rows.push(['Pending QA',state.pending]);
+  rows.push(['Failed QA',state.failed]);
+  rows.push(['Returned',state.returned]);
+  const confirmed=Math.max(0,state.songs.length-(state.pending+state.failed+state.returned));
+  rows.push(['Confirmed earnings (USD)',(confirmed*state.rate).toFixed(2)]);
+  rows.push(['Confirmed earnings (PHP)',(confirmed*state.rate*state.php).toFixed(2)]);
   const csv=rows.map(r=>r.map(cell=>{
     const s=String(cell==null?'':cell);
     return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
@@ -1120,6 +1178,25 @@ $('songList').addEventListener('click',e=>{
     clearTimeout(saveTimer);
     pushState();
   });
+});
+
+function setCounter(key,n){
+  n=Math.max(0,Math.floor(n)||0);
+  const prev=state[key];
+  state[key]=n;
+  save();render();
+  if(key==='pending'&&prev-n>0)toast((prev-n)+' cleared QA');
+  if(key==='failed'&&n-prev>0)toast((n-prev)+' failed — deducted','var(--fail)');
+  if(key==='returned'&&prev-n>0)toast((prev-n)+' resubmitted','var(--ret)');
+}
+document.querySelector('.pendbox').addEventListener('click',e=>{
+  const inc=e.target.closest('[data-inc]');
+  if(inc){setCounter(inc.dataset.inc,state[inc.dataset.inc]+1);return;}
+  const dec=e.target.closest('[data-dec]');
+  if(dec){setCounter(dec.dataset.dec,state[dec.dataset.dec]-1);return;}
+});
+document.querySelectorAll('.pendbox .val').forEach(inp=>{
+  inp.addEventListener('change',e=>setCounter(e.target.dataset.key,parseInt(e.target.value,10)));
 });
 
 $('rateBtn').addEventListener('click',()=>{
