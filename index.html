@@ -155,9 +155,12 @@
 
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
   .logRow{margin-top:4px}
-  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;
+    display:flex;align-items:center;justify-content:space-between;gap:8px}
   .stat .v{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums;color:var(--text)}
-  .stat .n{font-size:11px;color:var(--muted);margin-top:2px}
+  .statCount{text-align:right;flex-shrink:0}
+  .statCount .cnum{font-family:var(--mono);font-size:30px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
+  .statCount .clbl{font-size:11px;color:var(--muted);margin-top:3px}
 
   .list-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
   .list-head h2{font-size:14px;font-weight:600;cursor:pointer}
@@ -474,10 +477,22 @@
 
 <div class="dashRight">
 <div class="grid">
-  <div class="stat"><div class="eyebrow">Today</div><div class="v" id="cardTodayAmt">$0.00</div><div class="p" id="cardTodayPhp"></div><div class="n" id="cardTodayN"></div></div>
-  <div class="stat"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div><div class="n" id="weekN"></div></div>
-  <div class="stat"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="n" id="monthN"></div></div>
-  <div class="stat"><div class="eyebrow">All time</div><div class="v" id="allAmt">$0.00</div><div class="p" id="allPhp"></div><div class="n" id="allN"></div></div>
+  <div class="stat">
+    <div class="statInfo"><div class="eyebrow">Today</div><div class="v" id="cardTodayAmt">$0.00</div><div class="p" id="cardTodayPhp"></div></div>
+    <div class="statCount"><div class="cnum" id="cardTodayCount">0</div><div class="clbl">logged</div></div>
+  </div>
+  <div class="stat">
+    <div class="statInfo"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div></div>
+    <div class="statCount"><div class="cnum" id="weekCount">0</div><div class="clbl">logged</div></div>
+  </div>
+  <div class="stat">
+    <div class="statInfo"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div></div>
+    <div class="statCount"><div class="cnum" id="monthCount">0</div><div class="clbl">logged</div></div>
+  </div>
+  <div class="stat">
+    <div class="statInfo"><div class="eyebrow">All time</div><div class="v" id="allAmt">$0.00</div><div class="p" id="allPhp"></div></div>
+    <div class="statCount"><div class="cnum" id="allCount">0</div><div class="clbl">logged</div></div>
+  </div>
 </div>
 
 <div class="team hidden" id="teamCard">
@@ -1154,14 +1169,10 @@ function render(){
     $('todaySub').innerHTML='<b>'+nToday+'</b> track'+(nToday===1?'':'s')+' logged today';
   }
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
-  $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayN').textContent=nToday+' logged'+(teamToday?' +'+teamToday+' team':'');
-  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekN').textContent=nWeek+' logged'+(teamWeek?' +'+teamWeek+' team':'');
-  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);
-  const ps=periodStart(now),pe=new Date(ps.getFullYear(),ps.getMonth()+1,23);
-  const fmt=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  $('monthN').textContent=fmt(ps)+'–'+fmt(pe);
-  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);
-  $('allN').textContent=lead?(state.pending+' pend · '+state.failed+' fail · '+state.returned+' ret deducted'):(nAll+' logged');
+  $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=nToday+teamToday;
+  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=nWeek+teamWeek;
+  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=nMonth+teamMonth;
+  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=nAll+teamAll;
   $('rateBtn').textContent=money(state.rate)+(lead?'/QA':'/track');
   $('totalCount').textContent=nAll?nAll+' logged':'';
   if(lead){$('pendIn').value=state.pending;$('failIn').value=state.failed;$('retIn').value=state.returned;}
