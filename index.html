@@ -407,6 +407,7 @@
   </div>
   <button class="nav-item" id="navDashboard" data-view="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg> Dashboard</button>
   <button class="nav-item" id="navWorkLog" data-view="worklog"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> Work Log</button>
+  <button class="nav-item hidden" id="navTeam" data-view="team"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Team</button>
   <button class="nav-item" id="navAnalytics" data-view="analytics"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Analytics</button>
   <button class="nav-item" id="navSettings" data-view="settings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</button>
   <div class="sidebar-spacer"></div>
@@ -534,6 +535,25 @@
     <div id="songList"></div>
   </div>
   <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
+</div>
+</div>
+</div>
+
+<div id="viewTeam" class="view hidden">
+<div class="dashboardInner">
+
+<div class="team" id="teamCard2">
+  <div class="th">
+    <h2>Team</h2>
+    <div style="display:flex;gap:6px">
+      <button class="impBtn" id="syncBtn2"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Sync</button>
+    </div>
+  </div>
+  <div>
+    <div class="synced" id="syncedAt2"></div>
+    <div class="tsum" id="teamSum2"></div>
+    <div id="teamRows2"></div>
+  </div>
 </div>
 </div>
 </div>
@@ -840,11 +860,12 @@ $('sidebarBackdrop').addEventListener('click',closeSidebar);
 let currentView='dashboard';
 function showView(view){
   currentView=view;
-  ['dashboard','worklog','analytics','settings'].forEach(v=>{
+  ['dashboard','worklog','team','analytics','settings'].forEach(v=>{
     $('view'+(v==='worklog'?'WorkLog':v[0].toUpperCase()+v.slice(1))).classList.toggle('hidden',v!==view);
   });
   $('navDashboard').classList.toggle('active',view==='dashboard');
   $('navWorkLog').classList.toggle('active',view==='worklog');
+  $('navTeam').classList.toggle('active',view==='team');
   $('navAnalytics').classList.toggle('active',view==='analytics');
   $('navSettings').classList.toggle('active',view==='settings');
   if(view==='analytics')renderAnalytics();
@@ -852,6 +873,7 @@ function showView(view){
 }
 $('navDashboard').addEventListener('click',()=>showView('dashboard'));
 $('navWorkLog').addEventListener('click',()=>showView('worklog'));
+$('navTeam').addEventListener('click',()=>showView('team'));
 $('navAnalytics').addEventListener('click',()=>showView('analytics'));
 $('navSettings').addEventListener('click',()=>showView('settings'));
 showView('dashboard');
@@ -1209,6 +1231,7 @@ function render(){
   $('sidebarUserEmail').textContent=myEmail||'';
   document.querySelector('.pendbox').classList.toggle('hidden',!lead);
   $('teamCard').classList.toggle('hidden',!lead);
+  $('navTeam').classList.toggle('hidden',!lead);
   $('sendBtn').style.display=lead?'none':'flex';
   if(lead)renderTeam();
 
@@ -1220,7 +1243,9 @@ function render(){
 function renderTeam(){
   const cut=Math.max(0,state.rate-state.tcrate);
   const names=Object.keys(state.team.reports);
-  $('syncedAt').textContent=syncAgo();
+  const syncedText=syncAgo();
+  $('syncedAt').textContent=syncedText;
+  $('syncedAt2').textContent=syncedText;
   let totalN=0;
   let rows='';
   names.forEach(name=>{
@@ -1235,15 +1260,23 @@ function renderTeam(){
       +'<button class="payBtn" data-pay="'+esc(name)+'"'+(owed<=0?' disabled':'')+'>Mark paid</button>'
       +'</div>';
   });
-  $('teamSum').innerHTML=(names.length?('Your cut: <b>'+money(totalN*cut)+'</b> · '):'')+'they earn <button id="tcrateBtn">'+money(state.tcrate)+'/track</button>';
-  $('teamRows').innerHTML=rows||'<div class="none">No team counts yet. Team members can sign up themselves and tap "Send my work" once they\'re in.</div>';
-  const tb=$('tcrateBtn');
-  if(tb)tb.addEventListener('click',()=>{
-    askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
-      if(n>=state.rate){toast('Must be below your own rate','var(--muted)');return;}
-      state.tcrate=n;save();render();
+  const sumPrefix=names.length?('Your cut: <b>'+money(totalN*cut)+'</b> · '):'';
+  const emptyMsg='<div class="none">No team counts yet. Team members can sign up themselves and tap "Send my work" once they\'re in.</div>';
+  $('teamSum').innerHTML=sumPrefix+'they earn <button id="tcrateBtn">'+money(state.tcrate)+'/track</button>';
+  $('teamSum2').innerHTML=sumPrefix+'they earn <button id="tcrateBtn2">'+money(state.tcrate)+'/track</button>';
+  $('teamRows').innerHTML=rows||emptyMsg;
+  $('teamRows2').innerHTML=rows||emptyMsg;
+  const bindRateBtn=id=>{
+    const tb=$(id);
+    if(tb)tb.addEventListener('click',()=>{
+      askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
+        if(n>=state.rate){toast('Must be below your own rate','var(--muted)');return;}
+        state.tcrate=n;save();render();
+      });
     });
-  });
+  };
+  bindRateBtn('tcrateBtn');
+  bindRateBtn('tcrateBtn2');
 }
 
 let openDays=null; // lazily initialized: today open, past days collapsed
@@ -1440,8 +1473,9 @@ function exportCSV(){
 }
 $('exportBtn').addEventListener('click',exportCSV);
 $('syncBtn').addEventListener('click',()=>fetchTeam(true));
+$('syncBtn2').addEventListener('click',()=>fetchTeam(true));
 
-$('teamRows').addEventListener('click',e=>{
+function handleTeamRowClick(e){
   const pb=e.target.closest('[data-pay]');
   if(!pb||pb.disabled)return;
   const name=pb.dataset.pay;
@@ -1453,7 +1487,9 @@ $('teamRows').addEventListener('click',e=>{
     save();render();
     toast('Paid '+name+' '+money(owed));
   });
-});
+}
+$('teamRows').addEventListener('click',handleTeamRowClick);
+$('teamRows2').addEventListener('click',handleTeamRowClick);
 
 $('songList').addEventListener('click',e=>{
   const hdr=e.target.closest('.day-label');
