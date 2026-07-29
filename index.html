@@ -163,10 +163,7 @@
   .statCount .clbl{font-size:11px;color:var(--muted);margin-top:3px}
 
   .list-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px}
-  .list-head h2{font-size:14px;font-weight:600;cursor:pointer}
-  .list-head h2 .chev{display:inline-block;font-size:10px;color:var(--muted);transition:transform .2s ease;margin-left:4px}
-  .list-head.collapsed h2 .chev{transform:rotate(-90deg)}
-  #logBody.collapsed{display:none}
+  .list-head h2{font-size:14px;font-weight:600}
   .list-head span{font-size:12px;color:var(--muted)}
   .day-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.08em;
     text-transform:uppercase;margin:14px 0 6px;display:flex;justify-content:space-between;align-items:center;
@@ -239,10 +236,7 @@
   .logcard .list-head{margin-bottom:8px}
   .team .th{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
   .team .th h2{font-size:14px;font-weight:600}
-  .team .th h2 .chev{display:inline-block;font-size:10px;color:var(--muted);transition:transform .2s ease;margin-left:4px}
-  .team.collapsed .th h2 .chev{transform:rotate(-90deg)}
-  .team .th>h2{cursor:pointer;flex:1}
-  .team.collapsed #teamBody{display:none}
+  .team .th>h2{flex:1}
   .team .th .impBtn{background:var(--pass-dim);border:1px solid rgba(78,214,167,.3);color:var(--pass);
     border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);
     display:inline-flex;align-items:center;gap:6px}
@@ -293,7 +287,14 @@
   .view.hidden{display:none}
   .dashboardInner{max-width:640px;margin:0 auto}
   .dashTop{display:flex;flex-direction:column}
-  .dashRight .grid{margin-bottom:16px}
+  .dashLeft{display:flex;flex-direction:column}
+  .hero{flex:1}
+  .dashRight{display:flex;flex-direction:column}
+  .dashRight .grid{margin-bottom:16px;flex:1;grid-template-rows:1fr 1fr}
+  .dashRight .team{flex:0 0 auto}
+  .recentList{margin-top:16px}
+  .recentLbl{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.08em;
+    text-transform:uppercase;margin-bottom:8px}
 
   /* settings */
   .settingsCard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:2px 16px}
@@ -336,7 +337,7 @@
     .hero,.stat,.logcard,.team,.settingsCard{box-shadow:0 10px 34px rgba(0,0,0,.28)}
     .dashboardInner{max-width:760px}
     #viewDashboard .dashboardInner{max-width:960px}
-    .dashTop{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:start}
+    .dashTop{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:stretch}
     .dashRight .grid{gap:12px;margin-bottom:16px}
     .logRow{margin-top:12px}
   }
@@ -497,7 +498,7 @@
 
 <div class="team hidden" id="teamCard">
   <div class="th" id="teamHead">
-    <h2>Team <span class="chev" id="teamChev">▼</span></h2>
+    <h2>Team</h2>
     <div style="display:flex;gap:6px" id="teamBtns">
       <button class="impBtn" id="syncBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Sync</button>
     </div>
@@ -514,8 +515,9 @@
 <div class="logRow">
 <input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
 <button class="logBtn" id="addBtn">+ Log a submission</button>
-<button class="sendBtn" id="sendBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send my counts to lead</button>
+<button class="sendBtn" id="sendBtn"><svg class="prof-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send my work</button>
 <p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
+<div class="recentList" id="recentList"></div>
 </div>
 </div>
 </div>
@@ -525,7 +527,7 @@
 
 <div class="logcard">
   <div class="list-head" id="logHead">
-    <h2>Work log <span class="chev" id="logChev">▼</span></h2>
+    <h2>Work log</h2>
     <span id="totalCount"></span>
   </div>
   <div id="logBody">
@@ -550,6 +552,11 @@
     <button class="periodBtn active" data-gran="daily">Daily</button>
     <button class="periodBtn" data-gran="weekly">Weekly</button>
     <button class="periodBtn" data-gran="monthly">Monthly</button>
+  </div>
+  <div class="periodToggle hidden" id="sourceToggle" style="margin-top:8px">
+    <button class="periodBtn active" data-src="combined">Combined</button>
+    <button class="periodBtn" data-src="mine">Mine</button>
+    <button class="periodBtn" data-src="team">Team</button>
   </div>
 </div>
 
@@ -851,6 +858,7 @@ showView('dashboard');
 
 // ---- analytics: daily/weekly/monthly progress charts ----
 let analyticsGran='daily';
+let analyticsSrc='combined';
 function periodBuckets(gran,count){
   const now=new Date();
   const buckets=[];
@@ -933,6 +941,7 @@ function renderBarChart(containerId,buckets,values,opts){
 function renderAnalytics(){
   const lead=state.role!=='member';
   $('qaCard').classList.toggle('hidden',!lead);
+  $('sourceToggle').classList.toggle('hidden',!lead);
   if(lead){
     const nAll=state.songs.length;
     const unpaidN=state.pending+state.failed+state.returned;
@@ -945,15 +954,25 @@ function renderAnalytics(){
   const buckets=periodBuckets(analyticsGran,count);
   const tcut=Math.max(0,state.rate-state.tcrate);
   const bucketData=buckets.map(bucketCounts);
-  const counts=bucketData.map(c=>c.own+c.team);
-  const earnings=bucketData.map(c=>c.own*state.rate+c.team*tcut);
+  const src=lead?analyticsSrc:'mine';
+  const counts=bucketData.map(c=>src==='mine'?c.own:src==='team'?c.team:c.own+c.team);
+  const earnings=bucketData.map(c=>{
+    const ownE=c.own*state.rate,teamE=c.team*tcut;
+    return src==='mine'?ownE:src==='team'?teamE:ownE+teamE;
+  });
   renderBarChart('countChart',buckets,counts,{color:'var(--pass)',format:v=>v+' track'+(v===1?'':'s')});
   renderBarChart('earningsChart',buckets,earnings,{color:'var(--gold)',format:v=>money(v)});
 }
 $('periodToggle').addEventListener('click',e=>{
   const b=e.target.closest('[data-gran]');if(!b)return;
   analyticsGran=b.dataset.gran;
-  document.querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
+  $('periodToggle').querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
+  renderAnalytics();
+});
+$('sourceToggle').addEventListener('click',e=>{
+  const b=e.target.closest('[data-src]');if(!b)return;
+  analyticsSrc=b.dataset.src;
+  $('sourceToggle').querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
   renderAnalytics();
 });
 
@@ -1194,6 +1213,7 @@ function render(){
   if(lead)renderTeam();
 
   renderSongs();
+  renderRecent();
   renderSettings();
 }
 
@@ -1216,7 +1236,7 @@ function renderTeam(){
       +'</div>';
   });
   $('teamSum').innerHTML=(names.length?('Your cut: <b>'+money(totalN*cut)+'</b> · '):'')+'they earn <button id="tcrateBtn">'+money(state.tcrate)+'/track</button>';
-  $('teamRows').innerHTML=rows||'<div class="none">No team counts yet. Team members can sign up themselves and tap "Send my counts to lead" once they\'re in.</div>';
+  $('teamRows').innerHTML=rows||'<div class="none">No team counts yet. Team members can sign up themselves and tap "Send my work" once they\'re in.</div>';
   const tb=$('tcrateBtn');
   if(tb)tb.addEventListener('click',()=>{
     askNum('Colleague pay per track','Amount in USD a colleague earns per track. Your cut = your rate minus this.',state.tcrate,n=>{
@@ -1234,9 +1254,9 @@ function renderSongs(){
     return;
   }
   if(!openDays)openDays=new Set([todayStr()]);
-  // flatten to newest-first, then keep only the last 4 unless "show all"
+  // flatten to newest-first, then keep only the last 8 unless "show all"
   const allSorted=state.songs.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-  const LIMIT=4;
+  const LIMIT=8;
   const limited=!showAll&&allSorted.length>LIMIT;
   const shown=limited?allSorted.slice(0,LIMIT):allSorted;
   // regroup the shown tracks by date (newest day first) so day headers still work
@@ -1249,7 +1269,7 @@ function renderSongs(){
     const rows=byDate[d].slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
     // count the full day's total (not just shown) so the header total stays accurate
     const dayTotal=state.songs.filter(s=>s.date===d).length;
-    const isOpen=showAll?openDays.has(d):true; // always expanded in the compact 4-track view
+    const isOpen=showAll?openDays.has(d):true; // always expanded in the compact view
     const label=d===todayStr()?'Today':dOf(d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+dayTotal+' track'+(dayTotal===1?'':'s')+'</span><em>'+money(dayTotal*state.rate)+'<span class="chev">▼</span></em></div>';
     html+='<div class="day-group'+(isOpen?' open':'')+'">';
@@ -1267,6 +1287,16 @@ function renderSongs(){
   list.innerHTML=html;
   const mb=$('moreBtn');
   if(mb)mb.addEventListener('click',()=>{showAll=!showAll;renderSongs();});
+}
+
+function renderRecent(){
+  const el=$('recentList');
+  const last=state.songs.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,2);
+  if(!last.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="recentLbl">Recently logged</div>'+last.map(x=>{
+    const time=x.ts?new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
+    return '<div class="song"><div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+time+'</div>':'')+'</div></div>';
+  }).join('');
 }
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
@@ -1409,13 +1439,6 @@ function exportCSV(){
   toast('Report exported ⬇');
 }
 $('exportBtn').addEventListener('click',exportCSV);
-$('teamHead').querySelector('h2').addEventListener('click',()=>{
-  $('teamCard').classList.toggle('collapsed');
-});
-$('logHead').querySelector('h2').addEventListener('click',()=>{
-  $('logHead').classList.toggle('collapsed');
-  $('logBody').classList.toggle('collapsed');
-});
 $('syncBtn').addEventListener('click',()=>fetchTeam(true));
 
 $('teamRows').addEventListener('click',e=>{
