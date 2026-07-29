@@ -246,6 +246,7 @@
     text-decoration:underline dotted;font-family:var(--sans);padding:0}
   .trow{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
   .trow .tname{font-size:14px;font-weight:600;min-width:0}
+  .trow .tname .tnameText{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .trow .tname small{display:block;font-size:11px;color:var(--muted);font-weight:400;font-family:var(--mono)}
   .trow .owe{margin-left:auto;text-align:right;flex-shrink:0}
   .trow .owe b{font-family:var(--mono);font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;display:block}
@@ -1258,7 +1259,7 @@ function renderTeam(){
     }
     totalN+=n;
     const amount=periodN*cut;
-    rows+='<div class="trow"><div class="tname">'+esc(name)
+    rows+='<div class="trow"><div class="tname"><span class="tnameText">'+esc(name)+'</span>'
       +'<small>Day '+dayN+' · Week '+weekN+' · Period '+periodN+'</small></div>'
       +'<div class="owe"><b>'+money(amount)+'</b><span>'+peso(amount*state.php)+'</span></div>'
       +'</div>';
