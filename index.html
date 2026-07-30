@@ -191,9 +191,6 @@
     border:1px solid var(--line);color:var(--pass);font-family:var(--mono);font-size:13px;padding:10px 18px;border-radius:99px;
     opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;font-weight:600}
   .toast.show{opacity:1}
-  .more{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:12px;
-    padding:11px;font-size:13px;cursor:pointer;font-family:var(--sans);margin-top:2px}
-  .more:active{background:var(--card-2)}
   /* when the full log is expanded, cap its height and let it scroll */
   .logscroll{max-height:340px;overflow-y:auto;-webkit-overflow-scrolling:touch;
     padding-right:4px;margin-right:-4px}
@@ -281,6 +278,9 @@
   /* analytics */
   .analyticsCard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
     padding:16px;margin-bottom:14px}
+  .qaPct{font-family:var(--mono);font-size:36px;font-weight:600;color:var(--pass);margin:6px 0 2px;
+    font-variant-numeric:tabular-nums}
+  .qaSub{font-size:12px;color:var(--muted)}
   .periodToggle{display:flex;gap:8px}
   .periodBtn{flex:1;background:var(--bg);border:1px solid var(--line);color:var(--muted);border-radius:10px;
     padding:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans)}
@@ -365,6 +365,7 @@
   </div>
   <button class="nav-item" id="navDashboard" data-view="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg> Dashboard</button>
   <button class="nav-item" id="navWorkLog" data-view="worklog"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> Work Log</button>
+  <button class="nav-item" id="navEarnings" data-view="earnings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Earnings</button>
   <button class="nav-item" id="navAnalytics" data-view="analytics"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Analytics</button>
   <button class="nav-item" id="navSettings" data-view="settings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Settings</button>
   <div class="sidebar-spacer"></div>
@@ -481,8 +482,51 @@
 </div>
 </div>
 
+<div id="viewEarnings" class="view hidden">
+<div class="dashboardInner">
+
+<div class="analyticsCard">
+  <div class="periodToggle" id="earnPeriodToggle">
+    <button class="periodBtn" data-ep="today">Today</button>
+    <button class="periodBtn" data-ep="week">Week</button>
+    <button class="periodBtn active" data-ep="period">Period</button>
+    <button class="periodBtn" data-ep="all">All time</button>
+  </div>
+</div>
+
+<div class="analyticsCard">
+  <div class="eyebrow">Passed QA</div>
+  <div class="qaPct" id="earnPassedVal">0</div>
+  <div class="qaSub" id="earnPassedSub"></div>
+</div>
+
+<div class="analyticsCard">
+  <div class="eyebrow">QA status</div>
+  <div class="settingsRow" style="border-top:none">
+    <div class="settingsLbl">Pending QA<small id="earnPendSub"></small></div>
+    <div class="settingsVal" style="cursor:default" id="earnPendVal">0</div>
+  </div>
+  <div class="settingsRow">
+    <div class="settingsLbl">Failed QA<small id="earnFailSub"></small></div>
+    <div class="settingsVal" style="cursor:default" id="earnFailVal">0</div>
+  </div>
+  <div class="settingsRow">
+    <div class="settingsLbl">Returned to you<small id="earnRetSub"></small></div>
+    <div class="settingsVal" style="cursor:default" id="earnRetVal">0</div>
+  </div>
+</div>
+
+</div>
+</div>
+
 <div id="viewAnalytics" class="view hidden">
 <div class="dashboardInner">
+
+<div class="analyticsCard" id="qaCard">
+  <div class="eyebrow">QA pass rate</div>
+  <div class="qaPct" id="qaPctVal">0%</div>
+  <div class="qaSub" id="qaPctSub"></div>
+</div>
 
 <div class="analyticsCard">
   <div class="periodToggle" id="periodToggle">
@@ -559,10 +603,9 @@
 // any module script.
 const AUTH_FLOW_TYPE=(()=>{try{return new URLSearchParams(location.hash.replace(/^#/,'')).get('type');}catch(e){return null;}})();
 
-const defaultState=()=>({name:'',rate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,songs:[]});
+const defaultState=()=>({name:'',rate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,songs:[],qaLog:[]});
 let state=defaultState();
 let myId=null,myEmail=null;
-let showAll=false;
 
 const $=id=>document.getElementById(id);
 const money=n=>'$'+n.toFixed(2);
@@ -578,6 +621,7 @@ function normalizeState(s){
   if(!('returned'in s))s.returned=0;
   if(!s.php)s.php=56.50;
   if(!Array.isArray(s.songs))s.songs=[];
+  if(!Array.isArray(s.qaLog))s.qaLog=[];
   return s;
 }
 
@@ -731,18 +775,21 @@ $('sidebarBackdrop').addEventListener('click',closeSidebar);
 let currentView='dashboard';
 function showView(view){
   currentView=view;
-  ['dashboard','worklog','analytics','settings'].forEach(v=>{
+  ['dashboard','worklog','earnings','analytics','settings'].forEach(v=>{
     $('view'+(v==='worklog'?'WorkLog':v[0].toUpperCase()+v.slice(1))).classList.toggle('hidden',v!==view);
   });
   $('navDashboard').classList.toggle('active',view==='dashboard');
   $('navWorkLog').classList.toggle('active',view==='worklog');
+  $('navEarnings').classList.toggle('active',view==='earnings');
   $('navAnalytics').classList.toggle('active',view==='analytics');
   $('navSettings').classList.toggle('active',view==='settings');
+  if(view==='earnings')renderEarnings();
   if(view==='analytics')renderAnalytics();
   closeSidebar();
 }
 $('navDashboard').addEventListener('click',()=>showView('dashboard'));
 $('navWorkLog').addEventListener('click',()=>showView('worklog'));
+$('navEarnings').addEventListener('click',()=>showView('earnings'));
 $('navAnalytics').addEventListener('click',()=>showView('analytics'));
 $('navSettings').addEventListener('click',()=>showView('settings'));
 showView('dashboard');
@@ -767,10 +814,12 @@ function periodBuckets(gran,count){
     }
   }else{
     const curStart=periodStart(now);
+    const cp=phtParts(curStart);
     for(let i=count-1;i>=0;i--){
-      const start=new Date(curStart);start.setMonth(start.getMonth()-i);
-      const end=new Date(start);end.setMonth(end.getMonth()+1);
-      buckets.push({label:start.toLocaleDateString('en-US',{month:'short'}),start,end});
+      const shifted=new Date(cp.y,cp.mo-i,1); // plain local Date, used only for month/year rollover math
+      const start=new Date(phtCutoffMs(shifted.getFullYear(),shifted.getMonth(),24,2));
+      const end=new Date(phtCutoffMs(shifted.getFullYear(),shifted.getMonth()+1,24,2));
+      buckets.push({label:dOf(phtDateStr(start)).toLocaleDateString('en-US',{month:'short'}),start,end});
     }
   }
   return buckets;
@@ -819,6 +868,12 @@ function renderBarChart(containerId,buckets,values,opts){
   });
 }
 function renderAnalytics(){
+  const nAll=state.songs.length;
+  const unpaidN=state.pending+state.failed+state.returned;
+  const confirmed=Math.max(0,nAll-unpaidN);
+  const pct=nAll?Math.round(confirmed/nAll*100):0;
+  $('qaPctVal').textContent=pct+'%';
+  $('qaPctSub').textContent=confirmed+' confirmed of '+nAll+' total logged';
   const count=analyticsGran==='daily'?7:analyticsGran==='weekly'?8:6;
   const buckets=periodBuckets(analyticsGran,count);
   const counts=buckets.map(bucketCounts);
@@ -831,6 +886,62 @@ $('periodToggle').addEventListener('click',e=>{
   analyticsGran=b.dataset.gran;
   $('periodToggle').querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
   renderAnalytics();
+});
+
+// ---- earnings / payment view ----
+let earnPeriod='period';
+const EARN_LABELS={today:'today',week:'this week',period:'this period',all:'all time'};
+// only counts increments (marking something pending/failed/returned), not the
+// resolving decrements, so it reads as "how many were marked X in this range"
+function qaActivityInRange(startMs,endMs){
+  let pending=0,failed=0,returned=0;
+  state.qaLog.forEach(e=>{
+    if(e.delta>0&&e.ts>=startMs&&e.ts<endMs){
+      if(e.type==='pending')pending+=e.delta;
+      else if(e.type==='failed')failed+=e.delta;
+      else if(e.type==='returned')returned+=e.delta;
+    }
+  });
+  return {pending,failed,returned};
+}
+function renderEarnings(){
+  const now=new Date(),nowMs=now.getTime();
+  const t=todayStr(),wk=weekStart(now),mo=periodStart(now);
+  let nToday=0,nWeek=0,nMonth=0;
+  state.songs.forEach(s=>{
+    const dt=dOf(s.date);
+    if(s.date===t)nToday++;
+    if(dt>=wk)nWeek++;
+    if((s.ts||dt.getTime())>=mo.getTime())nMonth++;
+  });
+  const nAll=state.songs.length;
+  const unpaidN=state.pending+state.failed+state.returned;
+  const confirmedAll=Math.max(0,nAll-unpaidN);
+
+  let passedN,rangeStart;
+  if(earnPeriod==='today'){passedN=nToday;rangeStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();}
+  else if(earnPeriod==='week'){passedN=nWeek;rangeStart=wk.getTime();}
+  else if(earnPeriod==='period'){passedN=nMonth;rangeStart=mo.getTime();}
+  else{passedN=confirmedAll;rangeStart=0;}
+  const passedAmt=passedN*state.rate;
+  $('earnPassedVal').textContent=passedN;
+  $('earnPassedSub').textContent=money(passedAmt)+' · '+peso(passedAmt*state.php);
+
+  $('earnPendVal').textContent=state.pending;
+  $('earnFailVal').textContent=state.failed;
+  $('earnRetVal').textContent=state.returned;
+
+  const act=qaActivityInRange(rangeStart,nowMs);
+  const lbl=EARN_LABELS[earnPeriod];
+  $('earnPendSub').textContent=act.pending?('+'+act.pending+' '+lbl):'none '+lbl;
+  $('earnFailSub').textContent=act.failed?('+'+act.failed+' '+lbl):'none '+lbl;
+  $('earnRetSub').textContent=act.returned?('+'+act.returned+' '+lbl):'none '+lbl;
+}
+$('earnPeriodToggle').addEventListener('click',e=>{
+  const b=e.target.closest('[data-ep]');if(!b)return;
+  earnPeriod=b.dataset.ep;
+  $('earnPeriodToggle').querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
+  renderEarnings();
 });
 
 // ---- settings view ----
@@ -879,7 +990,7 @@ function save(){
 async function pushState(){
   if(!myId)return;
   const blob=JSON.stringify({rate:state.rate,goal:state.goal,
-    pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,songs:state.songs});
+    pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,songs:state.songs,qaLog:state.qaLog});
   try{await sb.from('profiles').update({blob,updated:Date.now()}).eq('id',myId);}
   catch(e){/* offline — local state holds, next save() retries */}
 }
@@ -932,13 +1043,34 @@ async function fetchRate(notify){
   }
 }
 function weekStart(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x;} // Monday
-// cutoff is the 23rd; pay period runs the 24th 2:00 AM → the 24th 1:59 AM next
-// month. Return the exact switchover instant (most recent 24th at 2:00 AM).
+
+// ---- Philippine Time (UTC+8) helpers — the pay-period cutoff below is always
+// anchored to PHT, regardless of what timezone the viewing device is set to
+const PHT_OFFSET_MS=8*3600*1000;
+function phtParts(d){
+  const x=new Date(d.getTime()+PHT_OFFSET_MS);
+  return {y:x.getUTCFullYear(),mo:x.getUTCMonth(),day:x.getUTCDate()};
+}
+function phtCutoffMs(y,mo,day,hour){return Date.UTC(y,mo,day,hour,0,0,0)-PHT_OFFSET_MS;}
+function phtDateStr(d){const p=phtParts(d);return p.y+'-'+String(p.mo+1).padStart(2,'0')+'-'+String(p.day).padStart(2,'0');}
+// the pay period's [start, end] dates as PHT-calendar YYYY-MM-DD strings,
+// safe to format for display without local-timezone drift
+function periodRangeStrs(periodStartInstant){
+  const p=phtParts(periodStartInstant);
+  const endCal=new Date(p.y,p.mo+1,23); // plain local Date, used only for month/year rollover math
+  return {
+    startStr:phtDateStr(periodStartInstant),
+    endStr:endCal.getFullYear()+'-'+String(endCal.getMonth()+1).padStart(2,'0')+'-'+String(endCal.getDate()).padStart(2,'0'),
+  };
+}
+// pay period runs 24th 2:00 AM PHT → the following 24th 1:59:59 AM PHT,
+// always anchored to Philippine Time regardless of the viewer's own timezone
 function periodStart(d){
-  const x=new Date(d);
-  const cutoffThisMonth=new Date(x.getFullYear(),x.getMonth(),24,2,0,0,0);
-  if(x>=cutoffThisMonth)return cutoffThisMonth;
-  return new Date(x.getFullYear(),x.getMonth()-1,24,2,0,0,0);
+  const p=phtParts(d);
+  const cutoffMs=phtCutoffMs(p.y,p.mo,24,2);
+  if(d.getTime()>=cutoffMs)return new Date(cutoffMs);
+  const prev=new Date(p.y,p.mo-1,1); // plain local Date, used only for month/year rollover math
+  return new Date(phtCutoffMs(prev.getFullYear(),prev.getMonth(),24,2));
 }
 function dOf(s){return new Date(s+'T12:00:00');}
 
@@ -969,9 +1101,9 @@ function render(){
   $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=nToday;
   $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=nWeek;
   $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=nMonth;
-  const periodEnd=new Date(mo.getFullYear(),mo.getMonth()+1,23);
-  const fmtPeriod=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  $('monthRange').textContent=fmtPeriod(mo)+'–'+fmtPeriod(periodEnd);
+  const periodRange=periodRangeStrs(mo);
+  const fmtPeriod=s=>dOf(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  $('monthRange').textContent=fmtPeriod(periodRange.startStr)+'–'+fmtPeriod(periodRange.endStr)+' · 2AM PHT';
   $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=nAll;
   $('rateBtn').textContent=money(state.rate)+'/track';
   $('totalCount').textContent=nAll?nAll+' logged':'';
@@ -1001,22 +1133,14 @@ function renderSongs(){
     return;
   }
   if(!openDays)openDays=new Set([todayStr()]);
-  // flatten to newest-first, then keep only the last 8 unless "show all"
-  const allSorted=state.songs.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-  const LIMIT=8;
-  const limited=!showAll&&allSorted.length>LIMIT;
-  const shown=limited?allSorted.slice(0,LIMIT):allSorted;
-  // regroup the shown tracks by date (newest day first) so day headers still work
   const byDate={};
-  shown.forEach(x=>{(byDate[x.date]=byDate[x.date]||[]).push(x);});
+  state.songs.forEach(x=>{(byDate[x.date]=byDate[x.date]||[]).push(x);});
   const dates=Object.keys(byDate).sort().reverse();
-  let html='';
-  html+='<div class="'+(showAll?'logscroll':'')+'">';
+  let html='<div class="logscroll">';
   dates.forEach(d=>{
     const rows=byDate[d].slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-    // count the full day's total (not just shown) so the header total stays accurate
-    const dayTotal=state.songs.filter(s=>s.date===d).length;
-    const isOpen=showAll?openDays.has(d):true; // always expanded in the compact view
+    const dayTotal=rows.length;
+    const isOpen=openDays.has(d);
     const label=d===todayStr()?'Today':dOf(d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
     html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+dayTotal+' track'+(dayTotal===1?'':'s')+'</span><em>'+money(dayTotal*state.rate)+'<span class="chev">▼</span></em></div>';
     html+='<div class="day-group'+(isOpen?' open':'')+'">';
@@ -1029,11 +1153,7 @@ function renderSongs(){
     html+='</div>';
   });
   html+='</div>';
-  if(limited)html+='<button class="more" id="moreBtn">Show more ('+(allSorted.length-LIMIT)+' more)</button>';
-  else if(allSorted.length>LIMIT)html+='<button class="more" id="moreBtn">Show less</button>';
   list.innerHTML=html;
-  const mb=$('moreBtn');
-  if(mb)mb.addEventListener('click',()=>{showAll=!showAll;renderSongs();});
 }
 
 function renderRecent(){
@@ -1124,12 +1244,12 @@ $('addBtn').addEventListener('click',()=>{
 $('songIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('addBtn').click();});
 
 function exportCSV(){
-  const now=new Date(),ps=periodStart(now),pe=new Date(ps.getFullYear(),ps.getMonth()+1,23);
+  const now=new Date(),ps=periodStart(now),pr=periodRangeStrs(ps);
   const fmtD=d=>d.toISOString().slice(0,10);
   const rows=[];
   rows.push(['Track It — Earnings Report']);
   rows.push(['Generated',new Date().toLocaleString()]);
-  rows.push(['Pay period',fmtD(ps)+' to '+fmtD(pe)]);
+  rows.push(['Pay period',pr.startStr+' to '+pr.endStr+' (2:00 AM PHT cutoff)']);
   rows.push(['Your rate (USD)',state.rate.toFixed(2)]);
   rows.push(['Exchange rate (PHP per USD)',state.php.toFixed(2)]);
   rows.push([]);
@@ -1187,7 +1307,9 @@ $('songList').addEventListener('click',e=>{
 function setCounter(key,n){
   n=Math.max(0,Math.floor(n)||0);
   const prev=state[key];
+  const delta=n-prev;
   state[key]=n;
+  if(delta!==0)state.qaLog.push({type:key,delta,ts:Date.now()});
   save();render();
   if(key==='pending'&&prev-n>0)toast((prev-n)+' cleared QA');
   if(key==='failed'&&n-prev>0)toast((n-prev)+' failed — deducted','var(--fail)');
