@@ -909,6 +909,19 @@ function qaNetOutstandingInRange(startMs,endMs){
   });
   return {pending:Math.max(0,pending),failed:Math.max(0,failed),returned:Math.max(0,returned)};
 }
+// counts currently outstanding that have NO matching qaLog entry at all —
+// e.g. set before this history-tracking existed, or a sync gap. Their origin
+// date is unknowable, so treat them as ambiguous and apply them to every
+// window (including Today) rather than letting them silently vanish from
+// everything but All-time, which reads the live total directly
+function qaOrphanedCounts(){
+  const lifetime=qaNetOutstandingInRange(0,Date.now());
+  return {
+    pending:Math.max(0,state.pending-lifetime.pending),
+    failed:Math.max(0,state.failed-lifetime.failed),
+    returned:Math.max(0,state.returned-lifetime.returned),
+  };
+}
 function renderEarnings(){
   const now=new Date(),nowMs=now.getTime();
   const t=todayStr(),wk=weekStart(now),mo=periodStart(now);
@@ -1094,17 +1107,22 @@ function render(){
   const nAll=state.songs.length;
   const unpaidN=state.pending+state.failed+state.returned;
 
-  // each grid deducts only the pending/failed/returned marks made within its
-  // own window, not the lead's whole-history running total (that's what All
-  // time is for) — e.g. something marked pending last week doesn't reduce
-  // today's earnings, but marking it today does
+  // each grid deducts the pending/failed/returned marks made within its own
+  // window, not the lead's whole-history running total (that's what All time
+  // is for) — e.g. something marked pending last week doesn't reduce today's
+  // earnings, but marking it today does. Anything currently outstanding with
+  // no matching log entry (orphaned — e.g. set before this history existed)
+  // is added to every window so it can never silently disappear from
+  // Today/Week/Period while still showing up in All time.
   const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
   const qaToday=qaNetOutstandingInRange(todayStartMs,nowMs);
   const qaWeek=qaNetOutstandingInRange(wk.getTime(),nowMs);
   const qaMonth=qaNetOutstandingInRange(mo.getTime(),nowMs);
-  const unpaidToday=qaToday.pending+qaToday.failed+qaToday.returned;
-  const unpaidWeek=qaWeek.pending+qaWeek.failed+qaWeek.returned;
-  const unpaidMonth=qaMonth.pending+qaMonth.failed+qaMonth.returned;
+  const qaOrphaned=qaOrphanedCounts();
+  const orphanedTotal=qaOrphaned.pending+qaOrphaned.failed+qaOrphaned.returned;
+  const unpaidToday=qaToday.pending+qaToday.failed+qaToday.returned+orphanedTotal;
+  const unpaidWeek=qaWeek.pending+qaWeek.failed+qaWeek.returned+orphanedTotal;
+  const unpaidMonth=qaMonth.pending+qaMonth.failed+qaMonth.returned+orphanedTotal;
 
   const earnToday=Math.max(0,nToday-unpaidToday)*state.rate;
   const earnWeek =Math.max(0,nWeek-unpaidWeek)*state.rate;
