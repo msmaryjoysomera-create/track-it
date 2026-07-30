@@ -199,7 +199,7 @@
   .modal{background:var(--card-2);border:1px solid var(--line);border-radius:16px;padding:20px 18px;
     width:100%;max-width:340px;max-height:85vh;overflow-y:auto}
   .modal h3{font-size:15px;font-weight:600;margin-bottom:4px}
-  .modal p{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.45}
+  .modal p{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.45;white-space:pre-line}
   .modal input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;
     color:var(--text);padding:13px 14px;font-size:17px;font-family:var(--mono);margin-bottom:14px;
     font-variant-numeric:tabular-nums}
@@ -216,7 +216,7 @@
     min-height:110px;resize:vertical;display:none;word-break:break-all}
   .modal textarea:focus{outline:2px solid var(--gold);border-color:transparent}
 
-  .workLogTop{display:flex;justify-content:flex-end;margin-bottom:18px}
+  .workLogTop{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-bottom:18px}
   .expBtn{background:var(--card-2);border:1px solid var(--line);color:var(--text);
     border-radius:11px;padding:9px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--sans)}
   .expBtn:active{transform:scale(.98)}
@@ -460,6 +460,7 @@
 <div id="viewWorkLog" class="view hidden">
 
 <div class="workLogTop">
+  <button class="expBtn" id="backfillBtn">＋ Backfill past work</button>
   <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
 </div>
 
@@ -1236,6 +1237,38 @@ function askText(title,desc,value,cb){
   $('overlay').classList.add('show');
   setTimeout(()=>{inp.focus();inp.select();},50);
 }
+function askBackfill(){
+  resetModal();
+  $('mTitle').textContent='Backfill past work';
+  $('mDesc').textContent='One line per day — date, then how many tracks:\n2026-06-01: 5\n2026-06-02: 3';
+  const ta=$('mText');
+  ta.style.display='block';
+  ta.value='';
+  ta.placeholder='2026-06-01: 5\n2026-06-02: 3';
+  $('mOk').textContent='Add';
+  $('mCancel').textContent='Cancel';
+  modalCb=()=>{
+    const lines=ta.value.split('\n').map(l=>l.trim()).filter(Boolean);
+    let added=0,days=0,bad=0;
+    lines.forEach(line=>{
+      const m=line.match(/^(\d{4}-\d{2}-\d{2})\s*[:,]?\s*(\d+)$/);
+      const count=m?parseInt(m[2],10):0;
+      if(!m||count<=0){bad++;return;}
+      days++;
+      for(let i=0;i<count;i++){
+        state.songs.push({id:Date.now()+'_'+i+'_'+Math.floor(Math.random()*99999),title:'Backfilled',date:m[1]});
+      }
+      added+=count;
+    });
+    if(added){clearTimeout(saveTimer);pushState();render();}
+    if(bad)toast(added+' added across '+days+' day'+(days===1?'':'s')+' · '+bad+' line'+(bad===1?'':'s')+' skipped','var(--muted)');
+    else if(added)toast('Added '+added+' track'+(added===1?'':'s')+' across '+days+' day'+(days===1?'':'s'));
+    else toast('Nothing added — check the date: count format','var(--muted)');
+  };
+  cancelCb=null;
+  $('overlay').classList.add('show');
+  setTimeout(()=>ta.focus(),50);
+}
 function askChoice(title,desc,okLabel,cancelLabel,okCb,cancelCbFn){
   resetModal();
   $('mTitle').textContent=title;
@@ -1314,6 +1347,7 @@ function exportCSV(){
   toast('Report exported ⬇');
 }
 $('exportBtn').addEventListener('click',exportCSV);
+$('backfillBtn').addEventListener('click',askBackfill);
 
 $('songList').addEventListener('click',e=>{
   const hdr=e.target.closest('.day-label');
