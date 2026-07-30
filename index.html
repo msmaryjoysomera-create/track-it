@@ -896,7 +896,7 @@ const EARN_LABELS={today:'today',week:'this week',period:'this period',all:'all 
 function qaActivityInRange(startMs,endMs){
   let pending=0,failed=0,returned=0;
   state.qaLog.forEach(e=>{
-    if(e.delta>0&&e.ts>=startMs&&e.ts<endMs){
+    if(e.delta>0&&e.ts>=startMs&&e.ts<=endMs){
       if(e.type==='pending')pending+=e.delta;
       else if(e.type==='failed')failed+=e.delta;
       else if(e.type==='returned')returned+=e.delta;
@@ -1057,7 +1057,7 @@ function phtDateStr(d){const p=phtParts(d);return p.y+'-'+String(p.mo+1).padStar
 // safe to format for display without local-timezone drift
 function periodRangeStrs(periodStartInstant){
   const p=phtParts(periodStartInstant);
-  const endCal=new Date(p.y,p.mo+1,23); // plain local Date, used only for month/year rollover math
+  const endCal=new Date(p.y,p.mo+1,24); // plain local Date, used only for month/year rollover math
   return {
     startStr:phtDateStr(periodStartInstant),
     endStr:endCal.getFullYear()+'-'+String(endCal.getMonth()+1).padStart(2,'0')+'-'+String(endCal.getDate()).padStart(2,'0'),
@@ -1075,7 +1075,7 @@ function periodStart(d){
 function dOf(s){return new Date(s+'T12:00:00');}
 
 function render(){
-  const t=todayStr(),now=new Date(),wk=weekStart(now),mo=periodStart(now);
+  const t=todayStr(),now=new Date(),nowMs=now.getTime(),wk=weekStart(now),mo=periodStart(now);
   let nToday=0,nWeek=0,nMonth=0;
   state.songs.forEach(s=>{
     const dt=dOf(s.date);
@@ -1089,21 +1089,33 @@ function render(){
   const nAll=state.songs.length;
   const unpaidN=state.pending+state.failed+state.returned;
 
-  const earnToday=nToday*state.rate;
-  const earnWeek =nWeek*state.rate;
-  const earnMonth=nMonth*state.rate;
+  // each grid deducts only the pending/failed/returned marks made within its
+  // own window, not the lead's whole-history running total (that's what All
+  // time is for) — e.g. something marked pending last week doesn't reduce
+  // today's earnings, but marking it today does
+  const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const qaToday=qaActivityInRange(todayStartMs,nowMs);
+  const qaWeek=qaActivityInRange(wk.getTime(),nowMs);
+  const qaMonth=qaActivityInRange(mo.getTime(),nowMs);
+  const unpaidToday=qaToday.pending+qaToday.failed+qaToday.returned;
+  const unpaidWeek=qaWeek.pending+qaWeek.failed+qaWeek.returned;
+  const unpaidMonth=qaMonth.pending+qaMonth.failed+qaMonth.returned;
+
+  const earnToday=Math.max(0,nToday-unpaidToday)*state.rate;
+  const earnWeek =Math.max(0,nWeek-unpaidWeek)*state.rate;
+  const earnMonth=Math.max(0,nMonth-unpaidMonth)*state.rate;
   const confirmedAll=Math.max(0,(nAll-unpaidN)*state.rate);
 
   $('todayAmt').textContent=money(earnToday);
-  const pendVal=state.pending*state.rate;
-  $('todaySub').innerHTML=nToday+' logged today · <b>'+money(pendVal)+'</b> waiting in QA';
+  const pendVal=unpaidToday*state.rate;
+  $('todaySub').innerHTML=nToday+' logged today'+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
   $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=nToday;
   $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=nWeek;
   $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=nMonth;
   const periodRange=periodRangeStrs(mo);
   const fmtPeriod=s=>dOf(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  $('monthRange').textContent=fmtPeriod(periodRange.startStr)+'–'+fmtPeriod(periodRange.endStr)+' · 2AM PHT';
+  $('monthRange').innerHTML=fmtPeriod(periodRange.startStr)+'–'+fmtPeriod(periodRange.endStr)+'<br>2AM PHT';
   $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=nAll;
   $('rateBtn').textContent=money(state.rate)+'/track';
   $('totalCount').textContent=nAll?nAll+' logged':'';
