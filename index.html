@@ -1114,16 +1114,21 @@ function render(){
   // earnings, but marking it today does. Anything currently outstanding with
   // no matching log entry (orphaned — e.g. set before this history existed)
   // is added to every window so it can never silently disappear from
-  // Today/Week/Period while still showing up in All time.
+  // Today/Week/Period while still showing up in All time. Each type is
+  // hard-capped at its own live count — a window can never claim to deduct
+  // more pending/failed/returned than currently exist, even if an older
+  // negative delta outside the window makes the raw net+orphaned sum overshoot.
   const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
-  const qaToday=qaNetOutstandingInRange(todayStartMs,nowMs);
-  const qaWeek=qaNetOutstandingInRange(wk.getTime(),nowMs);
-  const qaMonth=qaNetOutstandingInRange(mo.getTime(),nowMs);
   const qaOrphaned=qaOrphanedCounts();
-  const orphanedTotal=qaOrphaned.pending+qaOrphaned.failed+qaOrphaned.returned;
-  const unpaidToday=qaToday.pending+qaToday.failed+qaToday.returned+orphanedTotal;
-  const unpaidWeek=qaWeek.pending+qaWeek.failed+qaWeek.returned+orphanedTotal;
-  const unpaidMonth=qaMonth.pending+qaMonth.failed+qaMonth.returned+orphanedTotal;
+  function qaUnpaidForWindow(startMs,endMs){
+    const net=qaNetOutstandingInRange(startMs,endMs);
+    return Math.min(state.pending,net.pending+qaOrphaned.pending)
+      +Math.min(state.failed,net.failed+qaOrphaned.failed)
+      +Math.min(state.returned,net.returned+qaOrphaned.returned);
+  }
+  const unpaidToday=qaUnpaidForWindow(todayStartMs,nowMs);
+  const unpaidWeek=qaUnpaidForWindow(wk.getTime(),nowMs);
+  const unpaidMonth=qaUnpaidForWindow(mo.getTime(),nowMs);
 
   const earnToday=Math.max(0,nToday-unpaidToday)*state.rate;
   const earnWeek =Math.max(0,nWeek-unpaidWeek)*state.rate;
