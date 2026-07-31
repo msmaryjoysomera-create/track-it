@@ -486,25 +486,14 @@
 </div>
 
 <div class="analyticsCard">
-  <div class="eyebrow">Passed QA</div>
-  <div class="qaPct" id="earnPassedVal">0</div>
-  <div class="qaSub" id="earnPassedSub"></div>
+  <div class="eyebrow">Tracks logged</div>
+  <div class="qaPct" id="earnCountVal">0</div>
 </div>
 
 <div class="analyticsCard">
-  <div class="eyebrow">QA status</div>
-  <div class="settingsRow" style="border-top:none">
-    <div class="settingsLbl">Pending QA<small id="earnPendSub"></small></div>
-    <div class="settingsVal" style="cursor:default" id="earnPendVal">0</div>
-  </div>
-  <div class="settingsRow">
-    <div class="settingsLbl">Failed QA<small id="earnFailSub"></small></div>
-    <div class="settingsVal" style="cursor:default" id="earnFailVal">0</div>
-  </div>
-  <div class="settingsRow">
-    <div class="settingsLbl">Returned to you<small id="earnRetSub"></small></div>
-    <div class="settingsVal" style="cursor:default" id="earnRetVal">0</div>
-  </div>
+  <div class="eyebrow">Earned</div>
+  <div class="qaPct" id="earnAmtVal">$0.00</div>
+  <div class="qaSub" id="earnAmtSub"></div>
 </div>
 
 </div>
@@ -517,6 +506,31 @@
   <div class="eyebrow">QA pass rate</div>
   <div class="qaPct" id="qaPctVal">0%</div>
   <div class="qaSub" id="qaPctSub"></div>
+</div>
+
+<div class="analyticsCard">
+  <div class="periodToggle" id="qaStatusPeriodToggle">
+    <button class="periodBtn" data-qsp="today">Today</button>
+    <button class="periodBtn" data-qsp="week">Week</button>
+    <button class="periodBtn active" data-qsp="period">Period</button>
+    <button class="periodBtn" data-qsp="all">All time</button>
+  </div>
+</div>
+
+<div class="analyticsCard">
+  <div class="eyebrow">QA status</div>
+  <div class="settingsRow" style="border-top:none">
+    <div class="settingsLbl">Pending QA<small id="qaStatusPendSub"></small></div>
+    <div class="settingsVal" style="cursor:default" id="qaStatusPendVal">0</div>
+  </div>
+  <div class="settingsRow">
+    <div class="settingsLbl">Failed QA<small id="qaStatusFailSub"></small></div>
+    <div class="settingsVal" style="cursor:default" id="qaStatusFailVal">0</div>
+  </div>
+  <div class="settingsRow">
+    <div class="settingsLbl">Returned to you<small id="qaStatusRetSub"></small></div>
+    <div class="settingsVal" style="cursor:default" id="qaStatusRetVal">0</div>
+  </div>
 </div>
 
 <div class="analyticsCard">
@@ -865,6 +879,7 @@ function renderAnalytics(){
   const pct=nAll?Math.round(confirmed/nAll*100):0;
   $('qaPctVal').textContent=pct+'%';
   $('qaPctSub').textContent=confirmed+' confirmed of '+nAll+' total logged';
+  renderQaStatus();
   const count=analyticsGran==='daily'?7:analyticsGran==='weekly'?8:6;
   const buckets=periodBuckets(analyticsGran,count);
   const counts=buckets.map(bucketCounts);
@@ -923,6 +938,16 @@ function qaOrphanedCounts(){
     returned:Math.max(0,state.returned-lifetime.returned),
   };
 }
+// total pending+failed+returned to deduct for a window: net marks in range
+// plus orphaned counts, each type hard-capped at its own live total so a
+// window can never claim to deduct more than currently exists
+function qaUnpaidForWindow(startMs,endMs){
+  const net=qaNetOutstandingInRange(startMs,endMs);
+  const orphaned=qaOrphanedCounts();
+  return Math.min(state.pending,net.pending+orphaned.pending)
+    +Math.min(state.failed,net.failed+orphaned.failed)
+    +Math.min(state.returned,net.returned+orphaned.returned);
+}
 function renderEarnings(){
   const now=new Date(),nowMs=now.getTime();
   const t=todayStr(),wk=weekStart(now),mo=periodStart(now);
@@ -934,33 +959,52 @@ function renderEarnings(){
     if((s.ts||dt.getTime())>=mo.getTime())nMonth++;
   });
   const nAll=state.songs.length;
-  const unpaidN=state.pending+state.failed+state.returned;
-  const confirmedAll=Math.max(0,nAll-unpaidN);
+  const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
 
-  let passedN,rangeStart;
-  if(earnPeriod==='today'){passedN=nToday;rangeStart=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();}
-  else if(earnPeriod==='week'){passedN=nWeek;rangeStart=wk.getTime();}
-  else if(earnPeriod==='period'){passedN=nMonth;rangeStart=mo.getTime();}
-  else{passedN=confirmedAll;rangeStart=0;}
-  const passedAmt=passedN*state.rate;
-  $('earnPassedVal').textContent=passedN;
-  $('earnPassedSub').textContent=money(passedAmt)+' · '+peso(passedAmt*state.php);
+  let n,earn;
+  if(earnPeriod==='today'){n=nToday;earn=Math.max(0,nToday-qaUnpaidForWindow(todayStartMs,nowMs))*state.rate;}
+  else if(earnPeriod==='week'){n=nWeek;earn=Math.max(0,nWeek-qaUnpaidForWindow(wk.getTime(),nowMs))*state.rate;}
+  else if(earnPeriod==='period'){n=nMonth;earn=Math.max(0,nMonth-qaUnpaidForWindow(mo.getTime(),nowMs))*state.rate;}
+  else{n=nAll;earn=Math.max(0,nAll-(state.pending+state.failed+state.returned))*state.rate;}
 
-  $('earnPendVal').textContent=state.pending;
-  $('earnFailVal').textContent=state.failed;
-  $('earnRetVal').textContent=state.returned;
-
-  const act=qaActivityInRange(rangeStart,nowMs);
-  const lbl=EARN_LABELS[earnPeriod];
-  $('earnPendSub').textContent=act.pending?('+'+act.pending+' '+lbl):'none '+lbl;
-  $('earnFailSub').textContent=act.failed?('+'+act.failed+' '+lbl):'none '+lbl;
-  $('earnRetSub').textContent=act.returned?('+'+act.returned+' '+lbl):'none '+lbl;
+  $('earnCountVal').textContent=n;
+  $('earnAmtVal').textContent=money(earn);
+  $('earnAmtSub').textContent=peso(earn*state.php);
 }
 $('earnPeriodToggle').addEventListener('click',e=>{
   const b=e.target.closest('[data-ep]');if(!b)return;
   earnPeriod=b.dataset.ep;
   $('earnPeriodToggle').querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
   renderEarnings();
+});
+
+// ---- QA status (moved from Earnings to Analytics) ----
+let qaStatusPeriod='period';
+function renderQaStatus(){
+  const now=new Date(),nowMs=now.getTime();
+  const wk=weekStart(now),mo=periodStart(now);
+  const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  let rangeStart;
+  if(qaStatusPeriod==='today')rangeStart=todayStartMs;
+  else if(qaStatusPeriod==='week')rangeStart=wk.getTime();
+  else if(qaStatusPeriod==='period')rangeStart=mo.getTime();
+  else rangeStart=0;
+
+  $('qaStatusPendVal').textContent=state.pending;
+  $('qaStatusFailVal').textContent=state.failed;
+  $('qaStatusRetVal').textContent=state.returned;
+
+  const act=qaActivityInRange(rangeStart,nowMs);
+  const lbl=EARN_LABELS[qaStatusPeriod];
+  $('qaStatusPendSub').textContent=act.pending?('+'+act.pending+' '+lbl):'none '+lbl;
+  $('qaStatusFailSub').textContent=act.failed?('+'+act.failed+' '+lbl):'none '+lbl;
+  $('qaStatusRetSub').textContent=act.returned?('+'+act.returned+' '+lbl):'none '+lbl;
+}
+$('qaStatusPeriodToggle').addEventListener('click',e=>{
+  const b=e.target.closest('[data-qsp]');if(!b)return;
+  qaStatusPeriod=b.dataset.qsp;
+  $('qaStatusPeriodToggle').querySelectorAll('.periodBtn').forEach(x=>x.classList.toggle('active',x===b));
+  renderQaStatus();
 });
 
 // ---- settings view ----
@@ -1119,13 +1163,6 @@ function render(){
   // more pending/failed/returned than currently exist, even if an older
   // negative delta outside the window makes the raw net+orphaned sum overshoot.
   const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
-  const qaOrphaned=qaOrphanedCounts();
-  function qaUnpaidForWindow(startMs,endMs){
-    const net=qaNetOutstandingInRange(startMs,endMs);
-    return Math.min(state.pending,net.pending+qaOrphaned.pending)
-      +Math.min(state.failed,net.failed+qaOrphaned.failed)
-      +Math.min(state.returned,net.returned+qaOrphaned.returned);
-  }
   const unpaidToday=qaUnpaidForWindow(todayStartMs,nowMs);
   const unpaidWeek=qaUnpaidForWindow(wk.getTime(),nowMs);
   const unpaidMonth=qaUnpaidForWindow(mo.getTime(),nowMs);
