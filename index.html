@@ -216,7 +216,9 @@
     min-height:110px;resize:vertical;display:none;word-break:break-all}
   .modal textarea:focus{outline:2px solid var(--gold);border-color:transparent}
 
-  .workLogTop{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;margin-bottom:18px}
+  .workLogTop{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;margin-bottom:18px}
+  .workLogTopBtns{display:flex;flex-wrap:wrap;gap:8px}
+  .catToggle{width:140px}
   .expBtn{background:var(--card-2);border:1px solid var(--line);color:var(--text);
     border-radius:11px;padding:9px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--sans)}
   .expBtn:active{transform:scale(.98)}
@@ -354,7 +356,8 @@
     <div class="eq" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
     <h1>Track It</h1>
   </div>
-  <button class="nav-item" id="navDashboard" data-view="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg> Dashboard</button>
+  <button class="nav-item" id="navMusic" data-view="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg> Music Annotation</button>
+  <button class="nav-item" id="navVideo" data-view="dashboard"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg> Video Annotation</button>
   <button class="nav-item" id="navWorkLog" data-view="worklog"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> Work Log</button>
   <button class="nav-item" id="navEarnings" data-view="earnings"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Earnings</button>
   <button class="nav-item" id="navAnalytics" data-view="analytics"><svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg> Analytics</button>
@@ -460,8 +463,14 @@
 <div id="viewWorkLog" class="view hidden">
 
 <div class="workLogTop">
-  <button class="expBtn" id="backfillBtn">＋ Backfill past work</button>
-  <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
+  <div class="periodToggle catToggle">
+    <button class="periodBtn active" data-cat="music">Music</button>
+    <button class="periodBtn" data-cat="video">Video</button>
+  </div>
+  <div class="workLogTopBtns">
+    <button class="expBtn" id="backfillBtn">＋ Backfill past work</button>
+    <button class="expBtn" id="exportBtn">⬇ Export report (CSV)</button>
+  </div>
 </div>
 
 <div class="list-head" id="logHead">
@@ -475,6 +484,13 @@
 
 <div id="viewEarnings" class="view hidden">
 <div class="dashboardInner">
+
+<div class="analyticsCard">
+  <div class="periodToggle catToggle">
+    <button class="periodBtn active" data-cat="music">Music</button>
+    <button class="periodBtn" data-cat="video">Video</button>
+  </div>
+</div>
 
 <div class="analyticsCard">
   <div class="periodToggle" id="earnPeriodToggle">
@@ -501,6 +517,13 @@
 
 <div id="viewAnalytics" class="view hidden">
 <div class="dashboardInner">
+
+<div class="analyticsCard">
+  <div class="periodToggle catToggle">
+    <button class="periodBtn active" data-cat="music">Music</button>
+    <button class="periodBtn" data-cat="video">Video</button>
+  </div>
+</div>
 
 <div class="analyticsCard" id="qaCard">
   <div class="eyebrow">QA pass rate</div>
@@ -556,6 +579,14 @@
 
 <div id="viewSettings" class="view hidden">
 <div class="dashboardInner">
+
+<div class="analyticsCard">
+  <div class="periodToggle catToggle">
+    <button class="periodBtn active" data-cat="music">Music</button>
+    <button class="periodBtn" data-cat="video">Video</button>
+  </div>
+</div>
+
 <div class="settingsCard">
   <div class="settingsRow">
     <div class="settingsLbl">Pay rate<small>per track</small></div>
@@ -609,7 +640,10 @@
 const AUTH_FLOW_TYPE=(()=>{try{return new URLSearchParams(location.hash.replace(/^#/,'')).get('type');}catch(e){return null;}})();
 
 const defaultState=()=>({name:'',rate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,songs:[],qaLog:[]});
-let state=defaultState();
+const CATEGORY_LABELS={music:'Music Annotation',video:'Video Annotation'};
+let currentCategory='music';
+let categoryData={music:defaultState(),video:defaultState()};
+let state=categoryData[currentCategory];
 let myId=null,myEmail=null;
 
 const $=id=>document.getElementById(id);
@@ -628,6 +662,18 @@ function normalizeState(s){
   if(!Array.isArray(s.songs))s.songs=[];
   if(!Array.isArray(s.qaLog))s.qaLog=[];
   return s;
+}
+// the saved blob is either already split by category ({music:{...},video:{...}})
+// or — for anyone who used the app before video annotation existed — the old
+// flat shape ({rate,goal,songs,...}). Migrate the old shape into "music"
+// (this app's original, existing work type) rather than losing it; video
+// starts fresh either way.
+function splitBlobIntoCategories(parsed){
+  parsed=parsed||{};
+  if(parsed.music||parsed.video){
+    return {music:normalizeState(parsed.music||{}),video:normalizeState(parsed.video||{})};
+  }
+  return {music:normalizeState(parsed),video:normalizeState({})};
 }
 
 async function waitForSb(){
@@ -669,8 +715,10 @@ async function enterApp(session){
   myEmail=session.user.email;
   showLoading('Loading your data…');
   let row=await ensureOwnProfile(session.user);
-  state=normalizeState(row.blob?JSON.parse(row.blob):{});
-  state.name=row.name||myEmail;
+  categoryData=splitBlobIntoCategories(row.blob?JSON.parse(row.blob):{});
+  categoryData.music.name=categoryData.video.name=(row.name||myEmail);
+  currentCategory='music';
+  state=categoryData[currentCategory];
   hideLoading();
   hideAuth();hideSetPassword();
   if(!row.name){
@@ -678,7 +726,7 @@ async function enterApp(session){
     const suggested=meta.full_name||meta.name||'';
     askText('Your name','Track It uses this name to label your annotation log.',suggested,async v=>{
       const nm=(v.trim()||myEmail.split('@')[0]).slice(0,20);
-      state.name=nm;
+      categoryData.music.name=categoryData.video.name=nm;
       await sb.from('profiles').update({name:nm}).eq('id',myId);
       render();
     });
@@ -783,7 +831,8 @@ function showView(view){
   ['dashboard','worklog','earnings','analytics','settings'].forEach(v=>{
     $('view'+(v==='worklog'?'WorkLog':v[0].toUpperCase()+v.slice(1))).classList.toggle('hidden',v!==view);
   });
-  $('navDashboard').classList.toggle('active',view==='dashboard');
+  $('navMusic').classList.toggle('active',view==='dashboard'&&currentCategory==='music');
+  $('navVideo').classList.toggle('active',view==='dashboard'&&currentCategory==='video');
   $('navWorkLog').classList.toggle('active',view==='worklog');
   $('navEarnings').classList.toggle('active',view==='earnings');
   $('navAnalytics').classList.toggle('active',view==='analytics');
@@ -792,11 +841,33 @@ function showView(view){
   if(view==='analytics')renderAnalytics();
   closeSidebar();
 }
-$('navDashboard').addEventListener('click',()=>showView('dashboard'));
+// every category toggle across Work Log/Analytics/Earnings/Settings shares
+// this one switcher so they can never fall out of sync with each other or
+// with the sidebar's Music/Video Annotation entries
+function switchCategory(cat){
+  currentCategory=cat;
+  state=categoryData[cat];
+  document.querySelectorAll('[data-cat]').forEach(b=>b.classList.toggle('active',b.dataset.cat===cat));
+  render();
+  if(currentView==='earnings')renderEarnings();
+  if(currentView==='analytics')renderAnalytics();
+  if(currentView==='dashboard'){
+    $('navMusic').classList.toggle('active',cat==='music');
+    $('navVideo').classList.toggle('active',cat==='video');
+  }
+}
+$('navMusic').addEventListener('click',()=>{switchCategory('music');showView('dashboard');});
+$('navVideo').addEventListener('click',()=>{switchCategory('video');showView('dashboard');});
 $('navWorkLog').addEventListener('click',()=>showView('worklog'));
 $('navEarnings').addEventListener('click',()=>showView('earnings'));
 $('navAnalytics').addEventListener('click',()=>showView('analytics'));
 $('navSettings').addEventListener('click',()=>showView('settings'));
+// one delegated listener covers the Music/Video toggle on every view
+// (Work Log, Analytics, Earnings, Settings) rather than wiring each one
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-cat]');
+  if(b)switchCategory(b.dataset.cat);
+});
 showView('dashboard');
 
 // ---- analytics: daily/weekly/monthly progress charts ----
@@ -1052,8 +1123,7 @@ function save(){
 }
 async function pushState(){
   if(!myId)return;
-  const blob=JSON.stringify({rate:state.rate,goal:state.goal,
-    pending:state.pending,failed:state.failed,returned:state.returned,php:state.php,songs:state.songs,qaLog:state.qaLog});
+  const blob=JSON.stringify({music:categoryData.music,video:categoryData.video});
   try{await sb.from('profiles').update({blob,updated:Date.now()}).eq('id',myId);}
   catch(e){/* offline — local state holds, next save() retries */}
 }
@@ -1065,9 +1135,9 @@ async function cloudSyncNow(){
   try{
     const{data:row,error}=await sb.from('profiles').select('*').eq('id',myId).single();
     if(error||!row)throw error||new Error('no row');
-    const fresh=normalizeState(row.blob?JSON.parse(row.blob):{});
-    fresh.name=row.name||myEmail;
-    state=fresh;
+    categoryData=splitBlobIntoCategories(row.blob?JSON.parse(row.blob):{});
+    categoryData.music.name=categoryData.video.name=(row.name||myEmail);
+    state=categoryData[currentCategory];
     render();
     toast('Synced ✓');
   }catch(e){toast('Sync failed — check connection','var(--muted)');}
@@ -1183,7 +1253,7 @@ function render(){
   const fmtPeriod=s=>dOf(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});
   $('monthRange').innerHTML=fmtPeriod(periodRange.startStr)+'–'+fmtPeriod(periodRange.endStr)+'<br>2AM PHT';
   $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=nAll;
-  $('rateBtn').textContent=money(state.rate)+'/track';
+  $('rateBtn').textContent=money(state.rate)+'/'+(currentCategory==='video'?'video':'track');
   $('totalCount').textContent=nAll?nAll+' logged':'';
   $('pendIn').value=state.pending;$('failIn').value=state.failed;$('retIn').value=state.returned;
 
@@ -1194,7 +1264,7 @@ function render(){
     ?'<b style="color:var(--pass)">Target hit! '+nToday+' / '+state.goal+'</b>'
     :'<b>'+nToday+'</b> / '+state.goal+' daily target — '+(state.goal-nToday)+' to go';
 
-  $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' annotation log';
+  $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' '+CATEGORY_LABELS[currentCategory].toLowerCase()+' log';
   $('sidebarUserName').textContent=state.name||'';
   $('sidebarUserEmail').textContent=myEmail||'';
 
@@ -1356,7 +1426,7 @@ function exportCSV(){
   const now=new Date(),ps=periodStart(now),pr=periodRangeStrs(ps);
   const fmtD=d=>d.toISOString().slice(0,10);
   const rows=[];
-  rows.push(['Track It — Earnings Report']);
+  rows.push(['Track It — '+CATEGORY_LABELS[currentCategory]+' Earnings Report']);
   rows.push(['Generated',new Date().toLocaleString()]);
   rows.push(['Pay period',pr.startStr+' to '+pr.endStr+' (2:00 AM PHT cutoff)']);
   rows.push(['Your rate (USD)',state.rate.toFixed(2)]);
@@ -1383,7 +1453,7 @@ function exportCSV(){
   const blob=new Blob([csv],{type:'text/csv'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href=url;a.download='track-it-'+fmtD(now)+'.csv';
+  a.href=url;a.download='track-it-'+currentCategory+'-'+fmtD(now)+'.csv';
   document.body.appendChild(a);a.click();
   setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
   toast('Report exported ⬇');
