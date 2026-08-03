@@ -143,6 +143,9 @@
     color:var(--text);padding:14px 15px;font-size:15px;font-family:var(--sans);margin-bottom:8px}
   .songIn:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:transparent}
   .songIn::placeholder{color:var(--muted)}
+  .logInputRow{display:flex;gap:8px}
+  .logInputRow .songIn{margin-bottom:8px}
+  .secIn{flex:0 0 100px;width:100px;text-align:center;font-family:var(--mono)}
   .logBtn{width:100%;background:var(--gold);color:#1A1400;border:none;border-radius:16px;
     padding:18px;font-weight:700;font-size:17px;cursor:pointer;font-family:var(--sans);
     margin-bottom:12px;box-shadow:0 4px 18px rgba(245,192,68,.22)}
@@ -452,7 +455,10 @@
 </div>
 
 <div class="logRow">
+<div class="logInputRow">
 <input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
+<input type="number" class="songIn secIn hidden" id="secIn" placeholder="Seconds" inputmode="decimal" min="0" step="1" enterkeyhint="send">
+</div>
 <button class="logBtn" id="addBtn">+ Log a submission</button>
 <p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
 <div class="recentList" id="recentList"></div>
@@ -1298,6 +1304,7 @@ function render(){
   $('sidebarUserName').textContent=state.name||'';
   $('sidebarUserEmail').textContent=myEmail||'';
   $('songIn').placeholder=(isVideo?'Video':'Track')+' name or ID (optional)';
+  $('secIn').classList.toggle('hidden',!isVideo);
 
   renderSongs();
   renderRecent();
@@ -1474,14 +1481,16 @@ function logSubmission(sec){
 }
 $('addBtn').addEventListener('click',()=>{
   if(currentCategory==='video'){
-    askNum('Video duration','How many seconds of video did you annotate?','',sec=>{
-      if(sec>0)logSubmission(Math.round(sec));
-    });
+    const sec=parseFloat($('secIn').value);
+    if(!(sec>0)){toast('Enter the video length in seconds first','var(--muted)');$('secIn').focus();return;}
+    logSubmission(Math.round(sec));
+    $('secIn').value='';
     return;
   }
   logSubmission(null);
 });
 $('songIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('addBtn').click();});
+$('secIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('addBtn').click();});
 
 function exportCSV(){
   const isVideo=currentCategory==='video';
