@@ -672,14 +672,14 @@ function fmtDuration(sec){
   return h+'h'+(mm?' '+mm+'m':'');
 }
 function fmtUnits(u){return currentCategory==='video'?u.toFixed(2):String(Math.round(u));}
-// accepts 00:00:00:00 (H:M:S:hundredths) / 00:00:00 / 0:00 / plain seconds —
-// whatever granularity someone types
+// the last segment is always hundredths-of-a-second once there are 3+ parts:
+// SS / MM:SS / MM:SS:hh / HH:MM:SS:hh — so "2:45:03" is 2m 45s 03hh, not 2h45m3s
 function parseHMS(str){
   const parts=(str||'').trim().split(':').map(p=>p.trim());
   if(!parts.length||parts.some(p=>p===''||isNaN(p)))return NaN;
   if(parts.length===1)return parseFloat(parts[0]);
   if(parts.length===2)return parseInt(parts[0],10)*60+parseFloat(parts[1]);
-  if(parts.length===3)return parseInt(parts[0],10)*3600+parseInt(parts[1],10)*60+parseFloat(parts[2]);
+  if(parts.length===3)return parseInt(parts[0],10)*60+parseInt(parts[1],10)+parseInt(parts[2],10)/100;
   if(parts.length===4)return parseInt(parts[0],10)*3600+parseInt(parts[1],10)*60+parseInt(parts[2],10)+parseInt(parts[3],10)/100;
   return NaN;
 }
