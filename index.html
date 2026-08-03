@@ -672,6 +672,14 @@ function fmtDuration(sec){
   return h+'h'+(mm?' '+mm+'m':'');
 }
 function fmtUnits(u){return currentCategory==='video'?u.toFixed(2):String(Math.round(u));}
+// the exact value as entered, in the same 00:00:00:00 (H:M:S:hundredths) format
+function fmtTimecode(sec){
+  const total=Math.round(Math.max(0,sec||0)*100);
+  const pad=(n,len)=>String(n).padStart(len||2,'0');
+  const hh=Math.floor(total/360000),mm=Math.floor((total%360000)/6000),
+    ss=Math.floor((total%6000)/100),cs=total%100;
+  return pad(hh)+':'+pad(mm)+':'+pad(ss)+':'+pad(cs);
+}
 // the last segment is always hundredths-of-a-second once there are 3+ parts:
 // SS / MM:SS / MM:SS:hh / HH:MM:SS:hh — so "2:45:03" is 2m 45s 03hh, not 2h45m3s
 function parseHMS(str){
@@ -1349,7 +1357,7 @@ function renderSongs(){
     html+='<div class="day-group'+(isOpen?' open':'')+'">';
     rows.forEach((x,i)=>{
       const time=x.ts?new Date(x.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):dOf(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-      const durationTag=x.sec!=null?fmtDuration(x.sec)+' · ':'';
+      const durationTag=x.sec!=null?fmtTimecode(x.sec)+' · ':'';
       html+='<div class="song"><span class="idx">'+String(dayCount-i).padStart(2,'0')+'</span>'
         +'<div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div>'
         +'<button class="del" data-del="'+x.id+'" aria-label="Delete">✕</button></div>';
@@ -1494,7 +1502,7 @@ $('addBtn').addEventListener('click',()=>{
   if(currentCategory==='video'){
     const sec=parseHMS($('secIn').value);
     if(!(sec>0)){toast('Enter the video length as 00:00:00:00','var(--muted)');$('secIn').focus();return;}
-    logSubmission(Math.round(sec));
+    logSubmission(Math.round(sec*100)/100);
     $('secIn').value='';
     return;
   }
