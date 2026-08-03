@@ -502,7 +502,7 @@
 </div>
 
 <div class="analyticsCard">
-  <div class="eyebrow">Tracks logged</div>
+  <div class="eyebrow" id="earnCountLbl">Tracks logged</div>
   <div class="qaPct" id="earnCountVal">0</div>
 </div>
 
@@ -565,7 +565,7 @@
 </div>
 
 <div class="analyticsCard">
-  <div class="eyebrow">Tracks completed</div>
+  <div class="eyebrow" id="countChartLbl">Tracks completed</div>
   <div class="chartWrap" id="countChart"></div>
 </div>
 
@@ -640,9 +640,10 @@
 const AUTH_FLOW_TYPE=(()=>{try{return new URLSearchParams(location.hash.replace(/^#/,'')).get('type');}catch(e){return null;}})();
 
 const defaultState=()=>({name:'',rate:2.00,goal:24,pending:0,failed:0,returned:0,php:56.50,songs:[],qaLog:[]});
+const defaultVideoState=()=>{const v=defaultState();v.rate=20.00;v.goal=4;return v;}; // $20/hr, 4 hrs/day is a saner default than the track-count defaults
 const CATEGORY_LABELS={music:'Music Annotation',video:'Video Annotation'};
 let currentCategory='music';
-let categoryData={music:defaultState(),video:defaultState()};
+let categoryData={music:defaultState(),video:defaultVideoState()};
 let state=categoryData[currentCategory];
 let myId=null,myEmail=null;
 
@@ -650,6 +651,22 @@ const $=id=>document.getElementById(id);
 const money=n=>'$'+n.toFixed(2);
 const peso=n=>'₱'+n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+
+// Music is count-based (rate is $/track, each entry = 1 unit). Video is
+// duration-based (rate is $/hour, each entry's unit value is its own
+// duration in hours) — every earnings calc below sums entryUnits() and
+// multiplies by state.rate, so the same formula works for both categories.
+function entryUnits(s){return currentCategory==='video'?(s.sec||0)/3600:1;}
+function fmtDuration(sec){
+  sec=Math.round(sec);
+  if(sec<60)return sec+'s';
+  const m=Math.floor(sec/60),rem=sec%60;
+  if(m<60)return m+'m'+(rem?' '+rem+'s':'');
+  const h=Math.floor(m/60),mm=m%60;
+  return h+'h'+(mm?' '+mm+'m':'');
+}
+function fmtUnits(u){return currentCategory==='video'?u.toFixed(2):String(Math.round(u));}
+const unitLabel=()=>currentCategory==='video'?'hrs':'logged';
 
 function normalizeState(s){
   s=s||{};
@@ -671,9 +688,9 @@ function normalizeState(s){
 function splitBlobIntoCategories(parsed){
   parsed=parsed||{};
   if(parsed.music||parsed.video){
-    return {music:normalizeState(parsed.music||{}),video:normalizeState(parsed.video||{})};
+    return {music:normalizeState(parsed.music||{}),video:normalizeState(parsed.video||defaultVideoState())};
   }
-  return {music:normalizeState(parsed),video:normalizeState({})};
+  return {music:normalizeState(parsed),video:normalizeState(defaultVideoState())};
 }
 
 async function waitForSb(){
@@ -902,12 +919,12 @@ function periodBuckets(gran,count){
 }
 // count within [start,end), by exact log timestamp
 function bucketCounts(bucket){
-  let n=0;
+  let u=0;
   state.songs.forEach(s=>{
     const ts=s.ts||dOf(s.date).getTime();
-    if(ts>=bucket.start.getTime()&&ts<bucket.end.getTime())n++;
+    if(ts>=bucket.start.getTime()&&ts<bucket.end.getTime())u+=entryUnits(s);
   });
-  return n;
+  return u;
 }
 function renderBarChart(containerId,buckets,values,opts){
   const w=560,h=150,padL=4,padR=4,padB=20,padT=22;
@@ -944,18 +961,23 @@ function renderBarChart(containerId,buckets,values,opts){
   });
 }
 function renderAnalytics(){
+  const isVideo=currentCategory==='video';
   const nAll=state.songs.length;
-  const unpaidN=state.pending+state.failed+state.returned;
-  const confirmed=Math.max(0,nAll-unpaidN);
-  const pct=nAll?Math.round(confirmed/nAll*100):0;
+  const uAll=state.songs.reduce((sum,s)=>sum+entryUnits(s),0);
+  const unpaidN=isVideo?0:(state.pending+state.failed+state.returned);
+  const confirmed=Math.max(0,uAll-unpaidN);
+  const pct=uAll?Math.round(confirmed/uAll*100):0;
   $('qaPctVal').textContent=pct+'%';
-  $('qaPctSub').textContent=confirmed+' confirmed of '+nAll+' total logged';
+  $('qaPctSub').textContent=(isVideo?fmtUnits(confirmed)+' hrs confirmed of '+fmtUnits(uAll)+' hrs total logged':confirmed+' confirmed of '+nAll+' total logged');
   renderQaStatus();
   const count=analyticsGran==='daily'?7:analyticsGran==='weekly'?8:6;
   const buckets=periodBuckets(analyticsGran,count);
   const counts=buckets.map(bucketCounts);
-  const earnings=counts.map(n=>n*state.rate);
-  renderBarChart('countChart',buckets,counts,{color:'var(--pass)',format:v=>v+' track'+(v===1?'':'s')});
+  const earnings=counts.map(u=>u*state.rate);
+  $('countChartLbl').textContent=isVideo?'Hours annotated':'Tracks completed';
+  renderBarChart('countChart',buckets,counts,isVideo
+    ?{color:'var(--pass)',format:v=>fmtUnits(v)+' hrs'}
+    :{color:'var(--pass)',format:v=>v+' track'+(v===1?'':'s')});
   renderBarChart('earningsChart',buckets,earnings,{color:'var(--gold)',format:v=>money(v)});
 }
 $('periodToggle').addEventListener('click',e=>{
@@ -1020,25 +1042,27 @@ function qaUnpaidForWindow(startMs,endMs){
     +Math.min(state.returned,net.returned+orphaned.returned);
 }
 function renderEarnings(){
+  const isVideo=currentCategory==='video';
   const now=new Date(),nowMs=now.getTime();
   const t=todayStr(),wk=weekStart(now),mo=periodStart(now);
-  let nToday=0,nWeek=0,nMonth=0;
+  let uToday=0,uWeek=0,uMonth=0;
   state.songs.forEach(s=>{
-    const dt=dOf(s.date);
-    if(s.date===t)nToday++;
-    if(dt>=wk)nWeek++;
-    if((s.ts||dt.getTime())>=mo.getTime())nMonth++;
+    const dt=dOf(s.date),u=entryUnits(s);
+    if(s.date===t)uToday+=u;
+    if(dt>=wk)uWeek+=u;
+    if((s.ts||dt.getTime())>=mo.getTime())uMonth+=u;
   });
-  const nAll=state.songs.length;
+  const uAll=state.songs.reduce((sum,s)=>sum+entryUnits(s),0);
   const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
 
-  let n,earn;
-  if(earnPeriod==='today'){n=nToday;earn=Math.max(0,nToday-qaUnpaidForWindow(todayStartMs,nowMs))*state.rate;}
-  else if(earnPeriod==='week'){n=nWeek;earn=Math.max(0,nWeek-qaUnpaidForWindow(wk.getTime(),nowMs))*state.rate;}
-  else if(earnPeriod==='period'){n=nMonth;earn=Math.max(0,nMonth-qaUnpaidForWindow(mo.getTime(),nowMs))*state.rate;}
-  else{n=nAll;earn=Math.max(0,nAll-(state.pending+state.failed+state.returned))*state.rate;}
+  let u,earn;
+  if(earnPeriod==='today'){u=uToday;earn=Math.max(0,uToday-(isVideo?0:qaUnpaidForWindow(todayStartMs,nowMs)))*state.rate;}
+  else if(earnPeriod==='week'){u=uWeek;earn=Math.max(0,uWeek-(isVideo?0:qaUnpaidForWindow(wk.getTime(),nowMs)))*state.rate;}
+  else if(earnPeriod==='period'){u=uMonth;earn=Math.max(0,uMonth-(isVideo?0:qaUnpaidForWindow(mo.getTime(),nowMs)))*state.rate;}
+  else{u=uAll;earn=Math.max(0,uAll-(isVideo?0:(state.pending+state.failed+state.returned)))*state.rate;}
 
-  $('earnCountVal').textContent=n;
+  $('earnCountLbl').textContent=isVideo?'Hours logged':'Tracks logged';
+  $('earnCountVal').textContent=fmtUnits(u);
   $('earnAmtVal').textContent=money(earn);
   $('earnAmtSub').textContent=peso(earn*state.php);
 }
@@ -1208,19 +1232,23 @@ function periodStart(d){
 function dOf(s){return new Date(s+'T12:00:00');}
 
 function render(){
+  const isVideo=currentCategory==='video';
   const t=todayStr(),now=new Date(),nowMs=now.getTime(),wk=weekStart(now),mo=periodStart(now);
-  let nToday=0,nWeek=0,nMonth=0;
+  let uToday=0,uWeek=0,uMonth=0,nToday=0;
   state.songs.forEach(s=>{
-    const dt=dOf(s.date);
-    if(s.date===t)nToday++;
-    if(dt>=wk)nWeek++;
+    const dt=dOf(s.date),u=entryUnits(s);
+    if(s.date===t){uToday+=u;nToday++;}
+    if(dt>=wk)uWeek+=u;
     // use the exact log timestamp (not the noon-normalized date) so a track
     // logged just after midnight but before the 2 AM cutoff still counts
     // toward the previous pay period
-    if((s.ts||dt.getTime())>=mo.getTime())nMonth++;
+    if((s.ts||dt.getTime())>=mo.getTime())uMonth+=u;
   });
   const nAll=state.songs.length;
-  const unpaidN=state.pending+state.failed+state.returned;
+  const uAll=state.songs.reduce((sum,s)=>sum+entryUnits(s),0);
+  // QA deduction doesn't apply to Video yet — durations aren't tied to a
+  // pending/failed/returned count the way one track equals one unit for Music
+  const unpaidN=isVideo?0:(state.pending+state.failed+state.returned);
 
   // each grid deducts the pending/failed/returned marks made within its own
   // window, not the lead's whole-history running total (that's what All time
@@ -1233,40 +1261,43 @@ function render(){
   // more pending/failed/returned than currently exist, even if an older
   // negative delta outside the window makes the raw net+orphaned sum overshoot.
   const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
-  const unpaidToday=qaUnpaidForWindow(todayStartMs,nowMs);
-  const unpaidWeek=qaUnpaidForWindow(wk.getTime(),nowMs);
-  const unpaidMonth=qaUnpaidForWindow(mo.getTime(),nowMs);
+  const unpaidToday=isVideo?0:qaUnpaidForWindow(todayStartMs,nowMs);
+  const unpaidWeek=isVideo?0:qaUnpaidForWindow(wk.getTime(),nowMs);
+  const unpaidMonth=isVideo?0:qaUnpaidForWindow(mo.getTime(),nowMs);
 
-  const earnToday=Math.max(0,nToday-unpaidToday)*state.rate;
-  const earnWeek =Math.max(0,nWeek-unpaidWeek)*state.rate;
-  const earnMonth=Math.max(0,nMonth-unpaidMonth)*state.rate;
-  const confirmedAll=Math.max(0,(nAll-unpaidN)*state.rate);
+  const earnToday=Math.max(0,uToday-unpaidToday)*state.rate;
+  const earnWeek =Math.max(0,uWeek-unpaidWeek)*state.rate;
+  const earnMonth=Math.max(0,uMonth-unpaidMonth)*state.rate;
+  const confirmedAll=Math.max(0,(uAll-unpaidN)*state.rate);
 
   $('todayAmt').textContent=money(earnToday);
   const pendVal=unpaidToday*state.rate;
-  $('todaySub').innerHTML=nToday+' logged today'+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
+  $('todaySub').innerHTML=(isVideo?fmtUnits(uToday)+' hrs logged today':nToday+' logged today')+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
-  $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=nToday;
-  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=nWeek;
-  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=nMonth;
+  $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=fmtUnits(uToday);
+  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=fmtUnits(uWeek);
+  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=fmtUnits(uMonth);
   const periodRange=periodRangeStrs(mo);
   const fmtPeriod=s=>dOf(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});
   $('monthRange').innerHTML=fmtPeriod(periodRange.startStr)+'–'+fmtPeriod(periodRange.endStr)+'<br>2AM PHT';
-  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=nAll;
-  $('rateBtn').textContent=money(state.rate)+'/'+(currentCategory==='video'?'video':'track');
-  $('totalCount').textContent=nAll?nAll+' logged':'';
+  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=fmtUnits(uAll);
+  document.querySelectorAll('.clbl').forEach(el=>el.textContent=unitLabel());
+  $('rateBtn').textContent=money(state.rate)+'/'+(isVideo?'hour':'track');
+  $('totalCount').textContent=nAll?fmtUnits(uAll)+' '+unitLabel():'';
   $('pendIn').value=state.pending;$('failIn').value=state.failed;$('retIn').value=state.returned;
 
-  const pct=Math.min(100,(nToday/state.goal)*100);
+  const pct=Math.min(100,(uToday/state.goal)*100);
   const fill=$('goalFill');fill.style.width=pct+'%';
-  fill.classList.toggle('done',nToday>=state.goal);
-  $('goalText').innerHTML=nToday>=state.goal
-    ?'<b style="color:var(--pass)">Target hit! '+nToday+' / '+state.goal+'</b>'
-    :'<b>'+nToday+'</b> / '+state.goal+' daily target — '+(state.goal-nToday)+' to go';
+  fill.classList.toggle('done',uToday>=state.goal);
+  const goalUnit=isVideo?' hrs':'';
+  $('goalText').innerHTML=uToday>=state.goal
+    ?'<b style="color:var(--pass)">Target hit! '+fmtUnits(uToday)+goalUnit+' / '+state.goal+goalUnit+'</b>'
+    :'<b>'+fmtUnits(uToday)+goalUnit+'</b> / '+state.goal+goalUnit+' daily target — '+fmtUnits(state.goal-uToday)+goalUnit+' to go';
 
   $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' '+CATEGORY_LABELS[currentCategory].toLowerCase()+' log';
   $('sidebarUserName').textContent=state.name||'';
   $('sidebarUserEmail').textContent=myEmail||'';
+  $('songIn').placeholder=(isVideo?'Video':'Track')+' name or ID (optional)';
 
   renderSongs();
   renderRecent();
@@ -1276,8 +1307,12 @@ function render(){
 let openDays=null; // lazily initialized: today open, past days collapsed
 function renderSongs(){
   const list=$('songList');
+  const isVideo=currentCategory==='video';
+  const noun=isVideo?'video':'track';
   if(!state.songs.length){
-    list.innerHTML='<div class="empty">No tracks logged yet.<br>Every time you hit submit on Beatpulse Labs,<br>tap <b>+ Log a submission</b> — date and time are recorded automatically.</div>';
+    list.innerHTML=isVideo
+      ?'<div class="empty">No videos logged yet.<br>Every time you finish annotating a clip,<br>tap <b>+ Log a submission</b> and enter its duration.</div>'
+      :'<div class="empty">No tracks logged yet.<br>Every time you hit submit on Beatpulse Labs,<br>tap <b>+ Log a submission</b> — date and time are recorded automatically.</div>';
     return;
   }
   if(!openDays)openDays=new Set([todayStr()]);
@@ -1287,15 +1322,18 @@ function renderSongs(){
   let html='';
   dates.forEach(d=>{
     const rows=byDate[d].slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-    const dayTotal=rows.length;
+    const dayCount=rows.length;
+    const dayUnits=rows.reduce((sum,x)=>sum+entryUnits(x),0);
     const isOpen=openDays.has(d);
     const label=d===todayStr()?'Today':dOf(d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+dayTotal+' track'+(dayTotal===1?'':'s')+'</span><em>'+money(dayTotal*state.rate)+'<span class="chev">▼</span></em></div>';
+    const countLabel=dayCount+' '+noun+(dayCount===1?'':'s')+(isVideo?' · '+fmtUnits(dayUnits)+' hrs':'');
+    html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+countLabel+'</span><em>'+money(dayUnits*state.rate)+'<span class="chev">▼</span></em></div>';
     html+='<div class="day-group'+(isOpen?' open':'')+'">';
     rows.forEach((x,i)=>{
       const time=x.ts?new Date(x.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):dOf(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-      html+='<div class="song"><span class="idx">'+String(dayTotal-i).padStart(2,'0')+'</span>'
-        +'<div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+time+'</div>':'')+'</div>'
+      const durationTag=x.sec!=null?fmtDuration(x.sec)+' · ':'';
+      html+='<div class="song"><span class="idx">'+String(dayCount-i).padStart(2,'0')+'</span>'
+        +'<div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div>'
         +'<button class="del" data-del="'+x.id+'" aria-label="Delete">✕</button></div>';
     });
     html+='</div>';
@@ -1309,7 +1347,8 @@ function renderRecent(){
   if(!last.length){el.innerHTML='';return;}
   el.innerHTML='<div class="recentLbl">Recently logged</div>'+last.map(x=>{
     const time=x.ts?new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
-    return '<div class="song"><div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+time+'</div>':'')+'</div></div>';
+    const durationTag=x.sec!=null?fmtDuration(x.sec)+' · ':'';
+    return '<div class="song"><div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div></div>';
   }).join('');
 }
 
@@ -1351,31 +1390,40 @@ function askText(title,desc,value,cb){
 }
 function askBackfill(){
   resetModal();
+  const isVideo=currentCategory==='video';
   $('mTitle').textContent='Backfill past work';
-  $('mDesc').textContent='One line per day — date, then how many tracks:\n2026-06-01: 5\n2026-06-02: 3';
+  $('mDesc').textContent=isVideo
+    ?'One line per day — date, then hours annotated:\n2026-06-01: 2.5\n2026-06-02: 1'
+    :'One line per day — date, then how many tracks:\n2026-06-01: 5\n2026-06-02: 3';
   const ta=$('mText');
   ta.style.display='block';
   ta.value='';
-  ta.placeholder='2026-06-01: 5\n2026-06-02: 3';
+  ta.placeholder=isVideo?'2026-06-01: 2.5\n2026-06-02: 1':'2026-06-01: 5\n2026-06-02: 3';
   $('mOk').textContent='Add';
   $('mCancel').textContent='Cancel';
   modalCb=()=>{
     const lines=ta.value.split('\n').map(l=>l.trim()).filter(Boolean);
     let added=0,days=0,bad=0;
     lines.forEach(line=>{
-      const m=line.match(/^(\d{4}-\d{2}-\d{2})\s*[:,]?\s*(\d+)$/);
-      const count=m?parseInt(m[2],10):0;
-      if(!m||count<=0){bad++;return;}
+      const m=line.match(/^(\d{4}-\d{2}-\d{2})\s*[:,]?\s*(\d+(?:\.\d+)?)$/);
+      const num=m?parseFloat(m[2]):0;
+      if(!m||num<=0){bad++;return;}
       days++;
-      for(let i=0;i<count;i++){
-        state.songs.push({id:Date.now()+'_'+i+'_'+Math.floor(Math.random()*99999),title:'Backfilled',date:m[1]});
+      if(isVideo){
+        state.songs.push({id:Date.now()+'_'+Math.floor(Math.random()*99999),title:'Backfilled',date:m[1],sec:Math.round(num*3600)});
+        added+=num;
+      }else{
+        for(let i=0;i<num;i++){
+          state.songs.push({id:Date.now()+'_'+i+'_'+Math.floor(Math.random()*99999),title:'Backfilled',date:m[1]});
+        }
+        added+=num;
       }
-      added+=count;
     });
     if(added){clearTimeout(saveTimer);pushState();render();}
-    if(bad)toast(added+' added across '+days+' day'+(days===1?'':'s')+' · '+bad+' line'+(bad===1?'':'s')+' skipped','var(--muted)');
-    else if(added)toast('Added '+added+' track'+(added===1?'':'s')+' across '+days+' day'+(days===1?'':'s'));
-    else toast('Nothing added — check the date: count format','var(--muted)');
+    const unit=isVideo?' hrs':' track'+(added===1?'':'s');
+    if(bad)toast(fmtUnits(added)+unit+' added across '+days+' day'+(days===1?'':'s')+' · '+bad+' line'+(bad===1?'':'s')+' skipped','var(--muted)');
+    else if(added)toast('Added '+fmtUnits(added)+unit+' across '+days+' day'+(days===1?'':'s'));
+    else toast('Nothing added — check the date: '+(isVideo?'hours':'count')+' format','var(--muted)');
   };
   cancelCb=null;
   $('overlay').classList.add('show');
@@ -1411,39 +1459,55 @@ $('overlay').addEventListener('click',e=>{if(e.target.id==='overlay'&&!cancelCb)
 $('mInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('mOk'))$('mOk').click();});
 $('cloudBtn').addEventListener('click',cloudSyncNow);
 
-$('addBtn').addEventListener('click',()=>{
+function logSubmission(sec){
   const nToday=state.songs.filter(s=>s.date===todayStr()).length;
   const typed=$('songIn').value.trim();
-  const title=typed||('Track #'+(nToday+1));
-  state.songs.push({id:Date.now()+''+Math.floor(Math.random()*999),title,date:todayStr(),ts:Date.now()});
+  const noun=currentCategory==='video'?'Video':'Track';
+  const title=typed||(noun+' #'+(nToday+1));
+  const entry={id:Date.now()+''+Math.floor(Math.random()*999),title,date:todayStr(),ts:Date.now()};
+  if(sec!=null)entry.sec=sec;
+  state.songs.push(entry);
   $('songIn').value='';
   save();render();
-  toast('Logged · +'+money(state.rate));
+  const units=entryUnits(entry);
+  toast('Logged · +'+(sec!=null?fmtDuration(sec)+' · ':'')+money(units*state.rate));
+}
+$('addBtn').addEventListener('click',()=>{
+  if(currentCategory==='video'){
+    askNum('Video duration','How many seconds of video did you annotate?','',sec=>{
+      if(sec>0)logSubmission(Math.round(sec));
+    });
+    return;
+  }
+  logSubmission(null);
 });
 $('songIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('addBtn').click();});
 
 function exportCSV(){
+  const isVideo=currentCategory==='video';
   const now=new Date(),ps=periodStart(now),pr=periodRangeStrs(ps);
   const fmtD=d=>d.toISOString().slice(0,10);
   const rows=[];
   rows.push(['Track It — '+CATEGORY_LABELS[currentCategory]+' Earnings Report']);
   rows.push(['Generated',new Date().toLocaleString()]);
   rows.push(['Pay period',pr.startStr+' to '+pr.endStr+' (2:00 AM PHT cutoff)']);
-  rows.push(['Your rate (USD)',state.rate.toFixed(2)]);
+  rows.push(['Your rate (USD)',state.rate.toFixed(2)+(isVideo?'/hour':'/track')]);
   rows.push(['Exchange rate (PHP per USD)',state.php.toFixed(2)]);
   rows.push([]);
   rows.push(['SUBMISSIONS']);
-  rows.push(['Date','Track','Time']);
+  rows.push(isVideo?['Date',CATEGORY_LABELS.video.split(' ')[0],'Duration','Time']:['Date','Track','Time']);
   state.songs.slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(s=>{
     const time=s.ts?new Date(s.ts).toLocaleString():'';
-    rows.push([s.date,s.title,time]);
+    rows.push(isVideo?[s.date,s.title,fmtDuration(s.sec||0),time]:[s.date,s.title,time]);
   });
   rows.push([]);
-  rows.push(['Total tracks',state.songs.length]);
+  const uAll=state.songs.reduce((sum,s)=>sum+entryUnits(s),0);
+  rows.push([isVideo?'Total hours':'Total tracks',isVideo?uAll.toFixed(2):state.songs.length]);
   rows.push(['Pending QA',state.pending]);
   rows.push(['Failed QA',state.failed]);
   rows.push(['Returned',state.returned]);
-  const confirmed=Math.max(0,state.songs.length-(state.pending+state.failed+state.returned));
+  const unpaidN=isVideo?0:(state.pending+state.failed+state.returned);
+  const confirmed=Math.max(0,uAll-unpaidN);
   rows.push(['Confirmed earnings (USD)',(confirmed*state.rate).toFixed(2)]);
   rows.push(['Confirmed earnings (PHP)',(confirmed*state.rate*state.php).toFixed(2)]);
   const csv=rows.map(r=>r.map(cell=>{
