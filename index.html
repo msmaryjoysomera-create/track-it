@@ -145,7 +145,7 @@
   .songIn::placeholder{color:var(--muted)}
   .logInputRow{display:flex;gap:8px}
   .logInputRow .songIn{margin-bottom:8px}
-  .secIn{flex:0 0 100px;width:100px;text-align:center;font-family:var(--mono)}
+  .secIn{flex:0 0 112px;width:112px;text-align:center;font-family:var(--mono)}
   .logBtn{width:100%;background:var(--gold);color:#1A1400;border:none;border-radius:16px;
     padding:18px;font-weight:700;font-size:17px;cursor:pointer;font-family:var(--sans);
     margin-bottom:12px;box-shadow:0 4px 18px rgba(245,192,68,.22)}
@@ -457,7 +457,7 @@
 <div class="logRow">
 <div class="logInputRow">
 <input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
-<input type="number" class="songIn secIn hidden" id="secIn" placeholder="Seconds" inputmode="decimal" min="0" step="1" enterkeyhint="send">
+<input type="text" class="songIn secIn hidden" id="secIn" placeholder="00:00:00" inputmode="numeric" autocomplete="off" enterkeyhint="send">
 </div>
 <button class="logBtn" id="addBtn">+ Log a submission</button>
 <p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
@@ -672,6 +672,15 @@ function fmtDuration(sec){
   return h+'h'+(mm?' '+mm+'m':'');
 }
 function fmtUnits(u){return currentCategory==='video'?u.toFixed(2):String(Math.round(u));}
+// accepts 00:00:00 / 0:00 / plain seconds — whatever granularity someone types
+function parseHMS(str){
+  const parts=(str||'').trim().split(':').map(p=>p.trim());
+  if(!parts.length||parts.some(p=>p===''||isNaN(p)))return NaN;
+  if(parts.length===1)return parseFloat(parts[0]);
+  if(parts.length===2)return parseInt(parts[0],10)*60+parseFloat(parts[1]);
+  if(parts.length===3)return parseInt(parts[0],10)*3600+parseInt(parts[1],10)*60+parseFloat(parts[2]);
+  return NaN;
+}
 const unitLabel=()=>currentCategory==='video'?'hrs':'logged';
 
 function normalizeState(s){
@@ -1481,8 +1490,8 @@ function logSubmission(sec){
 }
 $('addBtn').addEventListener('click',()=>{
   if(currentCategory==='video'){
-    const sec=parseFloat($('secIn').value);
-    if(!(sec>0)){toast('Enter the video length in seconds first','var(--muted)');$('secIn').focus();return;}
+    const sec=parseHMS($('secIn').value);
+    if(!(sec>0)){toast('Enter the video length as 00:00:00','var(--muted)');$('secIn').focus();return;}
     logSubmission(Math.round(sec));
     $('secIn').value='';
     return;
