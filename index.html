@@ -186,6 +186,9 @@
   .tag.qa{background:var(--pend-dim);color:var(--pend)}
   .tag.ok{background:var(--pass-dim);color:var(--pass)}
   .del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 2px;flex-shrink:0;opacity:.6}
+  .edit{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px 6px 4px 2px;flex-shrink:0;opacity:.6}
+  .fieldLbl{font-size:12px;color:var(--muted);margin:12px 0 4px}
+  .fieldLbl:first-child{margin-top:0}
 
   .empty{text-align:center;color:var(--muted);font-size:13.5px;padding:32px 20px;background:var(--bg);
     border:1px dashed var(--line);border-radius:var(--radius);line-height:1.6}
@@ -1360,6 +1363,7 @@ function renderSongs(){
       const durationTag=x.sec!=null?fmtTimecode(x.sec)+' · ':'';
       html+='<div class="song"><span class="idx">'+String(dayCount-i).padStart(2,'0')+'</span>'
         +'<div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div>'
+        +'<button class="edit" data-edit="'+x.id+'" aria-label="Edit">✎</button>'
         +'<button class="del" data-del="'+x.id+'" aria-label="Delete">✕</button></div>';
     });
     html+='</div>';
@@ -1473,6 +1477,46 @@ function askConfirm(title,desc,cb){
   modalCb=cb;cancelCb=null;
   $('overlay').classList.add('show');
 }
+function askEditEntry(entry){
+  resetModal();
+  const isVideo=currentCategory==='video';
+  $('mTitle').textContent=isVideo?'Edit video':'Edit track';
+  $('mDesc').textContent='Update the details below.';
+  const custom=$('mCustom');
+  custom.style.display='block';
+  custom.innerHTML=
+    '<div class="fieldLbl">Name</div><input id="editTitle" type="text">'+
+    '<div class="fieldLbl">Date</div><input id="editDate" type="date">'+
+    '<div class="fieldLbl">Time</div><input id="editTime" type="time">'+
+    (isVideo?'<div class="fieldLbl">Length</div><input id="editSec" type="text" placeholder="00:00:00:00">':'');
+  $('editTitle').value=entry.title;
+  $('editDate').value=entry.date;
+  const dt=entry.ts?new Date(entry.ts):dOf(entry.date);
+  $('editTime').value=String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+  if(isVideo)$('editSec').value=fmtTimecode(entry.sec||0);
+  $('mOk').textContent='Save';
+  $('mCancel').textContent='Cancel';
+  modalCb=()=>{
+    const title=$('editTitle').value.trim();
+    if(title)entry.title=title;
+    const dateVal=$('editDate').value;
+    if(dateVal){
+      const timeVal=$('editTime').value||'00:00';
+      const combined=new Date(dateVal+'T'+timeVal+':00');
+      entry.date=dateVal;
+      if(!isNaN(combined.getTime()))entry.ts=combined.getTime();
+    }
+    if(isVideo){
+      const sec=parseHMS($('editSec').value);
+      if(sec>0)entry.sec=Math.round(sec*100)/100;
+    }
+    save();render();
+    clearTimeout(saveTimer);pushState();
+    toast('Updated');
+  };
+  cancelCb=null;
+  $('overlay').classList.add('show');
+}
 function closeModal(){$('overlay').classList.remove('show');modalCb=null;cancelCb=null;
   if(pendingAfterModal){const f=pendingAfterModal;pendingAfterModal=null;setTimeout(f,60);}
 }
@@ -1483,6 +1527,7 @@ function bindModalButtons(){
 bindModalButtons();
 $('overlay').addEventListener('click',e=>{if(e.target.id==='overlay'&&!cancelCb)closeModal();});
 $('mInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&$('mOk'))$('mOk').click();});
+$('mCustom').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT')$('mOk').click();});
 $('cloudBtn').addEventListener('click',cloudSyncNow);
 
 function logSubmission(sec){
@@ -1561,6 +1606,12 @@ $('songList').addEventListener('click',e=>{
     hdr.classList.toggle('open');
     const grp=hdr.nextElementSibling;
     if(grp)grp.classList.toggle('open');
+    return;
+  }
+  const edit=e.target.closest('.edit');
+  if(edit){
+    const s=state.songs.find(x=>x.id===edit.dataset.edit);
+    if(s)askEditEntry(s);
     return;
   }
   const del=e.target.closest('.del');if(!del)return;
