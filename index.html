@@ -459,7 +459,7 @@
 
 <div class="logRow">
 <div class="logInputRow">
-<input type="text" class="songIn" id="songIn" placeholder="Track name or ID (optional)" enterkeyhint="send" autocomplete="off">
+<input type="text" class="songIn" id="songIn" placeholder="Track name or ID" enterkeyhint="send" autocomplete="off">
 <input type="text" class="songIn secIn hidden" id="secIn" placeholder="00:00:00:00" inputmode="numeric" autocomplete="off" enterkeyhint="send">
 </div>
 <button class="logBtn" id="addBtn">+ Log a submission</button>
@@ -1325,7 +1325,7 @@ function render(){
   $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' '+CATEGORY_LABELS[currentCategory].toLowerCase()+' log';
   $('sidebarUserName').textContent=state.name||'';
   $('sidebarUserEmail').textContent=myEmail||'';
-  $('songIn').placeholder=(isVideo?'Video':'Track')+' name or ID (optional)';
+  $('songIn').placeholder=(isVideo?'Video':'Track')+' name or ID';
   $('secIn').classList.toggle('hidden',!isVideo);
 
   renderSongs();
