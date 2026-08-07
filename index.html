@@ -1378,9 +1378,15 @@ function renderRecent(){
   el.innerHTML='<div class="recentLbl">Recently logged</div>'+last.map(x=>{
     const time=x.ts?new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
     const durationTag=x.sec!=null?fmtDuration(x.sec)+' · ':'';
-    return '<div class="song"><div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div></div>';
+    return '<div class="song"><div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div>'
+      +'<button class="edit" data-edit="'+x.id+'" aria-label="Edit">✎</button></div>';
   }).join('');
 }
+$('recentList').addEventListener('click',e=>{
+  const edit=e.target.closest('.edit');if(!edit)return;
+  const s=state.songs.find(x=>x.id===edit.dataset.edit);
+  if(s)askEditEntry(s);
+});
 
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML;}
 function toast(msg,color){const el=$('toast');el.textContent=msg;el.style.color=color||'var(--pass)';
@@ -1393,6 +1399,7 @@ function resetModal(){
   $('mBtns').style.display='flex';
   $('mInput').style.display='none';$('mText').style.display='none';
   $('mOk').classList.remove('danger');
+  $('mCancel').style.display='';
 }
 function askNum(title,desc,value,cb){
   resetModal();
@@ -1468,6 +1475,15 @@ function askChoice(title,desc,okLabel,cancelLabel,okCb,cancelCbFn){
   modalCb=okCb;cancelCb=cancelCbFn;
   $('overlay').classList.add('show');
 }
+function showAlert(title,desc){
+  resetModal();
+  $('mTitle').textContent=title;
+  $('mDesc').textContent=desc;
+  $('mCancel').style.display='none';
+  $('mOk').textContent='OK';
+  modalCb=null;cancelCb=null;
+  $('overlay').classList.add('show');
+}
 function askConfirm(title,desc,cb){
   resetModal();
   $('mTitle').textContent=title;
@@ -1531,10 +1547,7 @@ $('mCustom').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName
 $('cloudBtn').addEventListener('click',cloudSyncNow);
 
 function logSubmission(sec){
-  const nToday=state.songs.filter(s=>s.date===todayStr()).length;
-  const typed=$('songIn').value.trim();
-  const noun=currentCategory==='video'?'Video':'Track';
-  const title=typed||(noun+' #'+(nToday+1));
+  const title=$('songIn').value.trim();
   const entry={id:Date.now()+''+Math.floor(Math.random()*999),title,date:todayStr(),ts:Date.now()};
   if(sec!=null)entry.sec=sec;
   state.songs.push(entry);
@@ -1544,13 +1557,20 @@ function logSubmission(sec){
   toast('Logged · +'+(sec!=null?fmtDuration(sec)+' · ':'')+money(units*state.rate));
 }
 $('addBtn').addEventListener('click',()=>{
-  if(currentCategory==='video'){
-    const sec=parseHMS($('secIn').value);
-    if(!(sec>0)){toast('Enter the video length as 00:00:00:00','var(--muted)');$('secIn').focus();return;}
+  const isVideo=currentCategory==='video';
+  const typed=$('songIn').value.trim();
+  if(isVideo){
+    const secStr=$('secIn').value.trim();
+    const sec=parseHMS(secStr);
+    const missing=[];
+    if(!typed)missing.push('a video name or ID');
+    if(!secStr||!(sec>0))missing.push('the video length');
+    if(missing.length){showAlert('Missing info','Please add '+missing.join(' and ')+' before logging.');return;}
     logSubmission(Math.round(sec*100)/100);
     $('secIn').value='';
     return;
   }
+  if(!typed){showAlert('Missing info','Please add a track name or ID before logging.');return;}
   logSubmission(null);
 });
 $('songIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('addBtn').click();});
