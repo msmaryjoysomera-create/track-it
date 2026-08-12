@@ -1683,6 +1683,11 @@ function askEditEntry(entry){
   $('mCancel').textContent='Cancel';
   modalCb=()=>{
     const title=$('editTitle').value.trim();
+    if(title&&isDuplicateTitle(title,entry.id)){
+      showAlert('Duplicate name','"'+title+'" is already logged. Please use a unique '+(isVideo?'video':'track')+' name or ID.');
+      pendingAfterModal=()=>askEditEntry(entry);
+      return;
+    }
     if(title)entry.title=title;
     const dateVal=$('editDate').value;
     if(dateVal){
@@ -1744,6 +1749,12 @@ function logSubmission(sec){
   const units=entryUnits(entry);
   toast('Logged · +'+(sec!=null?fmtDuration(sec)+' · ':'')+money(units*state.rate));
 }
+// names must be unique within a category so entries stay unambiguous —
+// checked case/whitespace-insensitively; excludeId lets editing skip itself
+function isDuplicateTitle(title,excludeId){
+  const norm=title.trim().toLowerCase();
+  return state.songs.some(s=>s.id!==excludeId&&s.title.trim().toLowerCase()===norm);
+}
 $('addBtn').addEventListener('click',()=>{
   const isVideo=currentCategory==='video';
   const typed=$('songIn').value.trim();
@@ -1754,11 +1765,13 @@ $('addBtn').addEventListener('click',()=>{
     if(!typed)missing.push('a video name or ID');
     if(!secStr||!(sec>0))missing.push('the video length');
     if(missing.length){showAlert('Missing info','Please add '+missing.join(' and ')+' before logging.');return;}
+    if(isDuplicateTitle(typed)){showAlert('Duplicate name','"'+typed+'" is already logged. Please use a unique video name or ID.');return;}
     logSubmission(Math.round(sec*10)/10);
     $('secIn').value='';
     return;
   }
   if(!typed){showAlert('Missing info','Please add a track name or ID before logging.');return;}
+  if(isDuplicateTitle(typed)){showAlert('Duplicate name','"'+typed+'" is already logged. Please use a unique track name or ID.');return;}
   logSubmission(null);
 });
 $('songIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('addBtn').click();});
