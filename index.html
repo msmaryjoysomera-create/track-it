@@ -96,11 +96,16 @@
     border-radius:var(--radius);padding:20px 18px 18px;margin-bottom:12px;position:relative;overflow:hidden}
   .hero::after{content:"";position:absolute;right:-30px;top:-30px;width:140px;height:140px;border-radius:50%;
     background:radial-gradient(circle,var(--gold-dim),transparent 70%);pointer-events:none}
-  .hero .amt{font-family:var(--mono);font-size:44px;font-weight:600;color:var(--gold);letter-spacing:-.02em;
+  .heroRow{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;
+    position:relative;z-index:1;flex-wrap:wrap}
+  .heroRow2{align-items:flex-start;margin-bottom:14px}
+  .heroCount{font-family:var(--mono);font-size:32px;font-weight:700;color:var(--text);letter-spacing:-.02em;
     margin:6px 0 2px;font-variant-numeric:tabular-nums}
+  .hero .amt{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--gold);letter-spacing:-.02em;
+    text-align:right;font-variant-numeric:tabular-nums}
   .hero .php{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--pass);
-    margin-bottom:4px;font-variant-numeric:tabular-nums;cursor:pointer;position:relative;z-index:1;
-    display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+    font-variant-numeric:tabular-nums;cursor:pointer;position:relative;z-index:1;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;text-align:right}
   .hero .php small{font-size:10px;color:var(--muted);font-family:var(--sans);letter-spacing:.02em}
   .refresh{background:var(--card);border:1px solid var(--line);color:var(--pass);border-radius:99px;
     width:26px;height:26px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;
@@ -108,7 +113,7 @@
   .refresh:active{transform:scale(.92)}
   .refresh.spin{animation:spin .8s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .hero .sub{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .hero .sub{font-size:13px;color:var(--muted)}
   .hero .sub b{color:var(--pend);font-weight:600}
   .stat .p{font-family:var(--mono);font-size:11.5px;color:var(--pass);margin-top:2px;font-variant-numeric:tabular-nums}
 
@@ -152,7 +157,7 @@
   .logBtn:active{transform:scale(.97)}
   .hidden{display:none!important}
 
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:1fr;gap:8px;margin-bottom:16px}
   .logRow{margin-top:4px}
   .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 12px 10px;
     display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -212,6 +217,9 @@
     color:var(--text);padding:13px 14px;font-size:17px;font-family:var(--mono);margin-bottom:14px;
     font-variant-numeric:tabular-nums}
   .modal input:focus{outline:2px solid var(--gold);border-color:transparent}
+  .modal select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:11px;
+    color:var(--text);padding:13px 14px;font-size:15px;font-family:var(--sans);margin-bottom:14px}
+  .modal select:focus{outline:2px solid var(--gold);border-color:transparent}
   .modal .btns{display:flex;flex-wrap:wrap;gap:8px}
   .modal .btns button{flex:1 1 calc(50% - 4px);min-width:0;border:none;border-radius:11px;padding:12px 10px;
     font-size:13.5px;font-weight:600;cursor:pointer;font-family:var(--sans);white-space:nowrap}
@@ -230,6 +238,15 @@
   .expBtn{background:var(--card-2);border:1px solid var(--line);color:var(--text);
     border-radius:11px;padding:9px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--sans)}
   .expBtn:active{transform:scale(.98)}
+  .workLogGrid{display:flex;flex-direction:column;gap:22px}
+  .workLogMain{min-width:0}
+  .workLogSide{display:flex;flex-direction:column;gap:14px}
+  .wlsRow{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+  .wlsRow:first-child{border-top:none}
+  .wlsLbl{font-size:13px;color:var(--muted);font-weight:600}
+  .wlsVals{text-align:right}
+  .wlsAmt{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--gold)}
+  .wlsCount{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:2px}
 
   /* nav: hamburger + sidebar */
   .hamburger{background:var(--card);border:1px solid var(--line);color:var(--text);width:34px;height:34px;
@@ -262,7 +279,7 @@
   .dashLeft{display:flex;flex-direction:column}
   .hero{flex:1}
   .dashRight{display:flex;flex-direction:column}
-  .dashRight .grid{margin-bottom:16px;flex:1;grid-template-rows:1fr 1fr}
+  .dashRight .grid{margin-bottom:16px;flex:1;grid-template-rows:repeat(3,1fr)}
   .recentList{margin-top:16px}
   .recentLbl{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.08em;
     text-transform:uppercase;margin-bottom:8px}
@@ -302,7 +319,8 @@
     header{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--line)}
     h1{font-size:23px}
     .hero{padding:26px 24px 24px}
-    .hero .amt{font-size:56px}
+    .heroCount{font-size:44px}
+    .hero .amt{font-size:24px}
     .grid{gap:14px}
     .hero,.stat,.settingsCard{box-shadow:0 10px 34px rgba(0,0,0,.28)}
     .dashboardInner{max-width:760px}
@@ -310,12 +328,14 @@
     .dashTop{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:stretch}
     .dashRight .grid{gap:12px;margin-bottom:16px}
     .logRow{margin-top:12px}
+    .workLogGrid{display:grid;grid-template-columns:1.6fr 1fr;gap:28px;align-items:start}
   }
   @media (min-width:1280px){
     body{max-width:1440px;padding:44px 56px 64px}
     h1{font-size:25px}
     .hero{padding:30px 28px 28px}
-    .hero .amt{font-size:60px}
+    .heroCount{font-size:48px}
+    .hero .amt{font-size:26px}
   }
   @media (min-width:1680px){
     body{max-width:1720px}
@@ -395,9 +415,14 @@
 <div class="dashLeft">
 <section class="hero">
   <div class="eyebrow">Earned today</div>
-  <div class="amt" id="todayAmt">$0.00</div>
-  <div class="php" id="todayPhp" title="Tap to edit exchange rate"></div>
-  <div class="sub" id="todaySub"></div>
+  <div class="heroRow">
+    <div class="heroCount" id="todayCountBig">0</div>
+    <div class="amt" id="todayAmt">$0.00</div>
+  </div>
+  <div class="heroRow heroRow2">
+    <div class="sub" id="todaySub"></div>
+    <div class="php" id="todayPhp" title="Tap to edit exchange rate"></div>
+  </div>
   <div class="goal">
     <div class="bar"><div class="fill" id="goalFill"></div></div>
     <div class="cap">
@@ -440,10 +465,6 @@
 <div class="dashRight">
 <div class="grid">
   <div class="stat">
-    <div class="statInfo"><div class="eyebrow">Today</div><div class="v" id="cardTodayAmt">$0.00</div><div class="p" id="cardTodayPhp"></div></div>
-    <div class="statCount"><div class="cnum" id="cardTodayCount">0</div><div class="clbl">logged</div><div class="ctally hidden" id="cardTodayTally"></div></div>
-  </div>
-  <div class="stat">
     <div class="statInfo"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div></div>
     <div class="statCount"><div class="cnum" id="weekCount">0</div><div class="clbl">logged</div><div class="ctally hidden" id="weekTally"></div></div>
   </div>
@@ -484,12 +505,33 @@
   </div>
 </div>
 
+<div class="workLogGrid">
+<div class="workLogMain">
 <div class="list-head" id="logHead">
   <h2>Work log</h2>
   <span id="totalCount"></span>
 </div>
 <div id="logBody">
   <div id="songList"></div>
+</div>
+</div>
+
+<div class="workLogSide">
+  <div class="analyticsCard">
+    <div class="eyebrow" style="margin-bottom:12px">Period totals</div>
+    <div class="wlsRow"><div class="wlsLbl">Today</div><div class="wlsVals"><div class="wlsAmt" id="wlsTodayAmt">$0.00</div><div class="wlsCount" id="wlsTodayCount">0</div></div></div>
+    <div class="wlsRow"><div class="wlsLbl">Week</div><div class="wlsVals"><div class="wlsAmt" id="wlsWeekAmt">$0.00</div><div class="wlsCount" id="wlsWeekCount">0</div></div></div>
+    <div class="wlsRow"><div class="wlsLbl">Period</div><div class="wlsVals"><div class="wlsAmt" id="wlsPeriodAmt">$0.00</div><div class="wlsCount" id="wlsPeriodCount">0</div></div></div>
+    <div class="wlsRow"><div class="wlsLbl">All time</div><div class="wlsVals"><div class="wlsAmt" id="wlsAllAmt">$0.00</div><div class="wlsCount" id="wlsAllCount">0</div></div></div>
+  </div>
+  <div class="analyticsCard">
+    <div class="eyebrow">Daily average</div>
+    <div class="qaPct" id="wlsAvgVal">0</div>
+    <div class="qaSub" id="wlsAvgSub"></div>
+    <div class="fieldLbl">Best day <small style="text-transform:none;letter-spacing:0">this period</small></div>
+    <div id="wlsBestDay" style="font-size:13.5px;font-weight:600">—</div>
+  </div>
+</div>
 </div>
 </div>
 
@@ -591,6 +633,13 @@
 <div id="viewSettings" class="view hidden">
 <div class="dashboardInner">
 
+<div class="settingsCard" style="margin-bottom:14px">
+  <div class="settingsRow" style="border-top:none">
+    <div class="settingsLbl">Timezone<small>For displaying dates & times</small></div>
+    <button class="settingsVal" id="setTzBtn">Device default</button>
+  </div>
+</div>
+
 <div class="analyticsCard">
   <div class="periodToggle catToggle">
     <button class="periodBtn active" data-cat="music">Music</button>
@@ -662,6 +711,22 @@ const $=id=>document.getElementById(id);
 const money=n=>'$'+n.toFixed(2);
 const peso=n=>'₱'+n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
 const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
+
+// display-only timezone preference — never affects the PHT-anchored pay
+// period cutoff logic below, only how logged dates/times are shown
+const TIMEZONES=[
+  {key:'device',label:'Device default',tz:null},
+  {key:'eastern',label:'Eastern (US)',tz:'America/New_York'},
+  {key:'central',label:'Central (US)',tz:'America/Chicago'},
+  {key:'mountain',label:'Mountain (US)',tz:'America/Denver'},
+  {key:'pacific',label:'Pacific (US)',tz:'America/Los_Angeles'},
+  {key:'pht',label:'Philippine Time',tz:'Asia/Manila'},
+];
+let displayTz=localStorage.getItem('trackit-tz')||'device';
+function tzOpts(base){
+  const z=TIMEZONES.find(t=>t.key===displayTz);
+  return (z&&z.tz)?Object.assign({},base,{timeZone:z.tz}):base;
+}
 
 // Music is count-based (rate is $/track, each entry = 1 unit). Video is
 // duration-based (rate is $/hour, each entry's unit value is its own
@@ -1152,7 +1217,9 @@ function renderSettings(){
   $('setGoalBtn').textContent=state.goal;
   $('setPhpBtn').textContent=peso(state.php);
   $('setEmailSub').textContent=myEmail||'';
+  $('setTzBtn').textContent=(TIMEZONES.find(z=>z.key===displayTz)||TIMEZONES[0]).label;
 }
+$('setTzBtn').addEventListener('click',askTimezone);
 $('setRateBtn').addEventListener('click',()=>$('rateBtn').click());
 $('setGoalBtn').addEventListener('click',()=>$('goalBtn').click());
 $('setPhpBtn').addEventListener('click',()=>{
@@ -1324,18 +1391,21 @@ function render(){
   const confirmedAll=Math.max(0,(uAll-unpaidN)*state.rate);
 
   $('todayAmt').textContent=money(earnToday);
+  $('todayCountBig').textContent=isVideo?fmtTimecode(uToday*3600):String(nToday);
   const pendVal=unpaidToday*state.rate;
-  $('todaySub').innerHTML=(isVideo?fmtTimecode(uToday*3600)+' logged today':nToday+' logged today')+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
+  $('todaySub').innerHTML='logged today'+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
-  $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=fmtUnits(uToday);
-  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=fmtUnits(uWeek);
-  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);$('monthCount').textContent=fmtUnits(uMonth);
+  $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);
+  $('weekCount').textContent=isVideo?fmtTimecode(uWeek*3600):fmtUnits(uWeek);
+  $('monthAmt').textContent=money(earnMonth);$('monthPhp').textContent=peso(earnMonth*state.php);
+  $('monthCount').textContent=isVideo?fmtTimecode(uMonth*3600):fmtUnits(uMonth);
   const periodRange=periodRangeStrs(mo);
   const fmtPeriod=s=>dOf(s).toLocaleDateString('en-US',{month:'short',day:'numeric'});
   $('monthRange').innerHTML=fmtPeriod(periodRange.startStr)+'–'+fmtPeriod(periodRange.endStr)+'<br>2AM PHT';
-  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=fmtUnits(uAll);
-  document.querySelectorAll('.clbl').forEach(el=>el.textContent=unitLabel());
-  [['cardTodayTally',nToday],['weekTally',nWeek],['monthTally',nMonth],['allTally',nAll]].forEach(([id,n])=>{
+  $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);
+  $('allCount').textContent=isVideo?fmtTimecode(uAll*3600):fmtUnits(uAll);
+  document.querySelectorAll('.clbl').forEach(el=>{el.textContent=unitLabel();el.classList.toggle('hidden',isVideo);});
+  [['weekTally',nWeek],['monthTally',nMonth],['allTally',nAll]].forEach(([id,n])=>{
     const el=$(id);
     el.classList.toggle('hidden',!isVideo);
     if(isVideo)el.textContent=n+' video'+(n===1?'':'s');
@@ -1361,6 +1431,7 @@ function render(){
   renderSongs();
   renderRecent();
   renderSettings();
+  renderWorkLogSummary();
 }
 
 let openDays=null; // lazily initialized: today open, past days collapsed
@@ -1389,7 +1460,7 @@ function renderSongs(){
     html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+countLabel+'</span><em>'+money(dayUnits*state.rate)+'<span class="chev">▼</span></em></div>';
     html+='<div class="day-group'+(isOpen?' open':'')+'">';
     rows.forEach((x,i)=>{
-      const time=x.ts?new Date(x.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):dOf(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      const time=x.ts?new Date(x.ts).toLocaleDateString('en-US',tzOpts({month:'short',day:'numeric',year:'numeric'}))+' · '+new Date(x.ts).toLocaleTimeString('en-US',tzOpts({hour:'numeric',minute:'2-digit'})):dOf(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
       const durationTag=x.sec!=null?fmtTimecode(x.sec)+' · ':'';
       const earnTag=isVideo?'<div class="earn">'+money(entryUnits(x)*state.rate)+'</div>':'';
       html+='<div class="song"><span class="idx">'+String(dayCount-i).padStart(2,'0')+'</span>'
@@ -1409,13 +1480,71 @@ function renderRecent(){
   const last=state.songs.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,2);
   if(!last.length){el.innerHTML='';return;}
   el.innerHTML='<div class="recentLbl">Recently logged</div>'+last.map(x=>{
-    const time=x.ts?new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
+    const time=x.ts?new Date(x.ts).toLocaleTimeString('en-US',tzOpts({hour:'numeric',minute:'2-digit'})):'';
     const durationTag=x.sec!=null?fmtTimecode(x.sec)+' · ':'';
     const earnTag=isVideo?'<div class="earn">'+money(entryUnits(x)*state.rate)+'</div>':'';
     return '<div class="song"><div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div>'
       +earnTag
       +'<button class="edit" data-edit="'+x.id+'" aria-label="Edit">✎</button></div>';
   }).join('');
+}
+
+function renderWorkLogSummary(){
+  const isVideo=currentCategory==='video';
+  const now=new Date(),nowMs=now.getTime(),t=todayStr(),wk=weekStart(now),mo=periodStart(now);
+  let uToday=0,uWeek=0,uMonth=0,uAll=0,nToday=0,nWeek=0,nMonth=0;
+  const periodByDate={};
+  state.songs.forEach(s=>{
+    const dt=dOf(s.date),u=entryUnits(s);
+    uAll+=u;
+    if(s.date===t){uToday+=u;nToday++;}
+    if(dt>=wk){uWeek+=u;nWeek++;}
+    if((s.ts||dt.getTime())>=mo.getTime()){
+      uMonth+=u;nMonth++;
+      (periodByDate[s.date]=periodByDate[s.date]||[]).push(s);
+    }
+  });
+  const nAll=state.songs.length;
+  const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const unpaidToday=isVideo?0:qaUnpaidForWindow(todayStartMs,nowMs);
+  const unpaidWeek=isVideo?0:qaUnpaidForWindow(wk.getTime(),nowMs);
+  const unpaidMonth=isVideo?0:qaUnpaidForWindow(mo.getTime(),nowMs);
+  const unpaidAll=isVideo?0:(state.pending+state.failed+state.returned);
+  const earnToday=Math.max(0,uToday-unpaidToday)*state.rate;
+  const earnWeek=Math.max(0,uWeek-unpaidWeek)*state.rate;
+  const earnMonth=Math.max(0,uMonth-unpaidMonth)*state.rate;
+  const earnAll=Math.max(0,uAll-unpaidAll)*state.rate;
+
+  const setRow=(amtId,countId,earn,units,n)=>{
+    $(amtId).textContent=money(earn);
+    $(countId).textContent=isVideo?fmtTimecode(units*3600):n+' track'+(n===1?'':'s');
+  };
+  setRow('wlsTodayAmt','wlsTodayCount',earnToday,uToday,nToday);
+  setRow('wlsWeekAmt','wlsWeekCount',earnWeek,uWeek,nWeek);
+  setRow('wlsPeriodAmt','wlsPeriodCount',earnMonth,uMonth,nMonth);
+  setRow('wlsAllAmt','wlsAllCount',earnAll,uAll,nAll);
+
+  // daily average and best day are scoped to the current pay period — divided
+  // by days that actually have activity, not calendar days elapsed, so an
+  // early, mostly-idle period doesn't understate the average
+  const activeDates=Object.keys(periodByDate);
+  const activeDays=activeDates.length;
+  const avgUnits=activeDays?uMonth/activeDays:0;
+  $('wlsAvgVal').textContent=isVideo?fmtTimecode(avgUnits*3600):fmtUnits(avgUnits);
+  $('wlsAvgSub').textContent=activeDays?('per active day · '+activeDays+' day'+(activeDays===1?'':'s')+' this period'):'no activity yet this period';
+
+  let bestDate=null,bestUnits=-1;
+  activeDates.forEach(d=>{
+    const dayUnits=periodByDate[d].reduce((sum,s)=>sum+entryUnits(s),0);
+    if(dayUnits>bestUnits){bestUnits=dayUnits;bestDate=d;}
+  });
+  if(bestDate){
+    const label=dOf(bestDate).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const valStr=isVideo?fmtTimecode(bestUnits*3600):periodByDate[bestDate].length+' track'+(periodByDate[bestDate].length===1?'':'s');
+    $('wlsBestDay').textContent=label+' — '+valStr+' · '+money(bestUnits*state.rate);
+  }else{
+    $('wlsBestDay').textContent='—';
+  }
 }
 $('recentList').addEventListener('click',e=>{
   const edit=e.target.closest('.edit');if(!edit)return;
@@ -1564,6 +1693,25 @@ function askEditEntry(entry){
     save();render();
     clearTimeout(saveTimer);pushState();
     toast('Updated');
+  };
+  cancelCb=null;
+  $('overlay').classList.add('show');
+}
+function askTimezone(){
+  resetModal();
+  $('mTitle').textContent='Timezone';
+  $('mDesc').textContent='Only changes how dates and times are displayed — pay period cutoffs always stay anchored to 2AM Philippine Time.';
+  const custom=$('mCustom');
+  custom.style.display='block';
+  custom.innerHTML='<select id="tzSelect">'+TIMEZONES.map(z=>
+    '<option value="'+z.key+'"'+(z.key===displayTz?' selected':'')+'>'+z.label+'</option>'
+  ).join('')+'</select>';
+  $('mOk').textContent='Save';
+  $('mCancel').textContent='Cancel';
+  modalCb=()=>{
+    displayTz=$('tzSelect').value;
+    localStorage.setItem('trackit-tz',displayTz);
+    render();
   };
   cancelCb=null;
   $('overlay').classList.add('show');
