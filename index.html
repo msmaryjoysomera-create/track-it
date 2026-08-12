@@ -160,6 +160,7 @@
   .statCount{text-align:right;flex-shrink:0}
   .statCount .cnum{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums;color:var(--text)}
   .statCount .clbl{font-size:11px;color:var(--muted);margin-top:3px}
+  .statCount .ctally{font-size:10px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
   .stat .pRange{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:2px;white-space:nowrap}
 
   .list-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
@@ -186,6 +187,7 @@
   .tag.qa{background:var(--pend-dim);color:var(--pend)}
   .tag.ok{background:var(--pass-dim);color:var(--pass)}
   .del{background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;padding:4px 2px;flex-shrink:0;opacity:.6}
+  .song .earn{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--gold);flex-shrink:0;margin-right:2px}
   .edit{background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px 6px 4px 2px;flex-shrink:0;opacity:.6}
   .fieldLbl{font-size:12px;color:var(--muted);margin:12px 0 4px}
   .fieldLbl:first-child{margin-top:0}
@@ -439,19 +441,19 @@
 <div class="grid">
   <div class="stat">
     <div class="statInfo"><div class="eyebrow">Today</div><div class="v" id="cardTodayAmt">$0.00</div><div class="p" id="cardTodayPhp"></div></div>
-    <div class="statCount"><div class="cnum" id="cardTodayCount">0</div><div class="clbl">logged</div></div>
+    <div class="statCount"><div class="cnum" id="cardTodayCount">0</div><div class="clbl">logged</div><div class="ctally hidden" id="cardTodayTally"></div></div>
   </div>
   <div class="stat">
     <div class="statInfo"><div class="eyebrow">Week</div><div class="v" id="weekAmt">$0.00</div><div class="p" id="weekPhp"></div></div>
-    <div class="statCount"><div class="cnum" id="weekCount">0</div><div class="clbl">logged</div></div>
+    <div class="statCount"><div class="cnum" id="weekCount">0</div><div class="clbl">logged</div><div class="ctally hidden" id="weekTally"></div></div>
   </div>
   <div class="stat">
     <div class="statInfo"><div class="eyebrow">Period</div><div class="v" id="monthAmt">$0.00</div><div class="p" id="monthPhp"></div><div class="pRange" id="monthRange"></div></div>
-    <div class="statCount"><div class="cnum" id="monthCount">0</div><div class="clbl">logged</div></div>
+    <div class="statCount"><div class="cnum" id="monthCount">0</div><div class="clbl">logged</div><div class="ctally hidden" id="monthTally"></div></div>
   </div>
   <div class="stat">
     <div class="statInfo"><div class="eyebrow">All time</div><div class="v" id="allAmt">$0.00</div><div class="p" id="allPhp"></div></div>
-    <div class="statCount"><div class="cnum" id="allCount">0</div><div class="clbl">logged</div></div>
+    <div class="statCount"><div class="cnum" id="allCount">0</div><div class="clbl">logged</div><div class="ctally hidden" id="allTally"></div></div>
   </div>
 </div>
 </div>
@@ -460,7 +462,7 @@
 <div class="logRow">
 <div class="logInputRow">
 <input type="text" class="songIn" id="songIn" placeholder="Track name or ID" enterkeyhint="send" autocomplete="off">
-<input type="text" class="songIn secIn hidden" id="secIn" placeholder="00:00:00:00" inputmode="numeric" autocomplete="off" enterkeyhint="send">
+<input type="text" class="songIn secIn hidden" id="secIn" placeholder="00:00:00.0" inputmode="numeric" autocomplete="off" enterkeyhint="send">
 </div>
 <button class="logBtn" id="addBtn">+ Log a submission</button>
 <p class="hint" id="hintText">One tap per submission — each log stamps the date and time automatically.</p>
@@ -675,24 +677,38 @@ function fmtDuration(sec){
   return h+'h'+(mm?' '+mm+'m':'');
 }
 function fmtUnits(u){return currentCategory==='video'?u.toFixed(2):String(Math.round(u));}
-// the exact value as entered, in the same 00:00:00:00 (H:M:S:hundredths) format
+// the exact value as entered, in hh:mm:ss.d format (d = tenths of a second) —
+// plain digits and colons/period only, so it's safe to copy and paste back in
 function fmtTimecode(sec){
-  const total=Math.round(Math.max(0,sec||0)*100);
-  const pad=(n,len)=>String(n).padStart(len||2,'0');
-  const hh=Math.floor(total/360000),mm=Math.floor((total%360000)/6000),
-    ss=Math.floor((total%6000)/100),cs=total%100;
-  return pad(hh)+':'+pad(mm)+':'+pad(ss)+':'+pad(cs);
+  const total=Math.round(Math.max(0,sec||0)*10);
+  const pad=n=>String(n).padStart(2,'0');
+  const hh=Math.floor(total/36000),mm=Math.floor((total%36000)/600),
+    ss=Math.floor((total%600)/10),d=total%10;
+  return pad(hh)+':'+pad(mm)+':'+pad(ss)+'.'+d;
 }
-// the last segment is always hundredths-of-a-second once there are 3+ parts:
-// SS / MM:SS / MM:SS:hh / HH:MM:SS:hh — so "2:45:03" is 2m 45s 03hh, not 2h45m3s
+// hh:mm:ss.d (or shorter — ss.d / mm:ss.d) — the fraction after the period is
+// always tenths of a second, so colon segments unambiguously mean H:M:S
 function parseHMS(str){
-  const parts=(str||'').trim().split(':').map(p=>p.trim());
+  str=(str||'').trim();
+  if(!str)return NaN;
+  const dot=str.indexOf('.');
+  let intPart=str,frac=0;
+  if(dot>=0){
+    intPart=str.slice(0,dot);
+    const fracStr=str.slice(dot+1);
+    if(fracStr){
+      if(isNaN(fracStr))return NaN;
+      frac=parseFloat('0.'+fracStr);
+    }
+  }
+  const parts=intPart.split(':').map(p=>p.trim());
   if(!parts.length||parts.some(p=>p===''||isNaN(p)))return NaN;
-  if(parts.length===1)return parseFloat(parts[0]);
-  if(parts.length===2)return parseInt(parts[0],10)*60+parseFloat(parts[1]);
-  if(parts.length===3)return parseInt(parts[0],10)*60+parseInt(parts[1],10)+parseInt(parts[2],10)/100;
-  if(parts.length===4)return parseInt(parts[0],10)*3600+parseInt(parts[1],10)*60+parseInt(parts[2],10)+parseInt(parts[3],10)/100;
-  return NaN;
+  let sec;
+  if(parts.length===1)sec=parseFloat(parts[0]);
+  else if(parts.length===2)sec=parseInt(parts[0],10)*60+parseFloat(parts[1]);
+  else if(parts.length===3)sec=parseInt(parts[0],10)*3600+parseInt(parts[1],10)*60+parseFloat(parts[2]);
+  else return NaN;
+  return sec+frac;
 }
 const unitLabel=()=>currentCategory==='video'?'hrs':'logged';
 
@@ -1197,16 +1213,20 @@ async function cloudSyncNow(){
 }
 
 let rateLive=false;
-async function fetchRate(notify){
-  const btn=document.getElementById('rateRefresh');
+async function fetchRate(notify,cat){
+  cat=cat||currentCategory;
+  const target=categoryData[cat];
+  const isActive=cat===currentCategory;
+  const btn=isActive?document.getElementById('rateRefresh'):null;
   if(btn)btn.classList.add('spin');
   let ok=false;
   try{
     const res=await fetch('https://open.er-api.com/v6/latest/USD');
     const j=await res.json();
     if(j&&j.rates&&j.rates.PHP>0){
-      state.php=Math.round(j.rates.PHP*100)/100;
-      rateLive=true;ok=true;
+      target.php=Math.round(j.rates.PHP*100)/100;
+      if(isActive)rateLive=true;
+      ok=true;
       save();render();
     }
   }catch(e){
@@ -1214,19 +1234,24 @@ async function fetchRate(notify){
       const res=await fetch('https://api.frankfurter.app/latest?from=USD&to=PHP');
       const j=await res.json();
       if(j&&j.rates&&j.rates.PHP>0){
-        state.php=Math.round(j.rates.PHP*100)/100;
-        rateLive=true;ok=true;
+        target.php=Math.round(j.rates.PHP*100)/100;
+        if(isActive)rateLive=true;
+        ok=true;
         save();render();
       }
     }catch(e2){/* stay on saved rate */}
   }
-  const btn2=document.getElementById('rateRefresh');
+  const btn2=isActive?document.getElementById('rateRefresh'):null;
   if(btn2)btn2.classList.remove('spin');
   if(notify){
-    if(ok)toast('Rate updated · ₱'+state.php.toFixed(2)+'/$');
+    if(ok)toast('Rate updated · ₱'+target.php.toFixed(2)+'/$');
     else toast('Couldn\'t fetch rate — offline? Using saved rate','var(--muted)');
   }
 }
+// video pay depends heavily on the live rate, so keep it fresh in the
+// background regardless of which category tab is open, on top of the
+// existing manual refresh button
+setInterval(()=>fetchRate(false,'video'),15*60*1000);
 function weekStart(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x;} // Monday
 
 // ---- Philippine Time (UTC+8) helpers — the pay-period cutoff below is always
@@ -1262,15 +1287,15 @@ function dOf(s){return new Date(s+'T12:00:00');}
 function render(){
   const isVideo=currentCategory==='video';
   const t=todayStr(),now=new Date(),nowMs=now.getTime(),wk=weekStart(now),mo=periodStart(now);
-  let uToday=0,uWeek=0,uMonth=0,nToday=0;
+  let uToday=0,uWeek=0,uMonth=0,nToday=0,nWeek=0,nMonth=0;
   state.songs.forEach(s=>{
     const dt=dOf(s.date),u=entryUnits(s);
     if(s.date===t){uToday+=u;nToday++;}
-    if(dt>=wk)uWeek+=u;
+    if(dt>=wk){uWeek+=u;nWeek++;}
     // use the exact log timestamp (not the noon-normalized date) so a track
     // logged just after midnight but before the 2 AM cutoff still counts
     // toward the previous pay period
-    if((s.ts||dt.getTime())>=mo.getTime())uMonth+=u;
+    if((s.ts||dt.getTime())>=mo.getTime()){uMonth+=u;nMonth++;}
   });
   const nAll=state.songs.length;
   const uAll=state.songs.reduce((sum,s)=>sum+entryUnits(s),0);
@@ -1300,7 +1325,7 @@ function render(){
 
   $('todayAmt').textContent=money(earnToday);
   const pendVal=unpaidToday*state.rate;
-  $('todaySub').innerHTML=(isVideo?fmtUnits(uToday)+' hrs logged today':nToday+' logged today')+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
+  $('todaySub').innerHTML=(isVideo?fmtTimecode(uToday*3600)+' logged today':nToday+' logged today')+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
   $('cardTodayAmt').textContent=money(earnToday);$('cardTodayPhp').textContent=peso(earnToday*state.php);$('cardTodayCount').textContent=fmtUnits(uToday);
   $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);$('weekCount').textContent=fmtUnits(uWeek);
@@ -1310,6 +1335,11 @@ function render(){
   $('monthRange').innerHTML=fmtPeriod(periodRange.startStr)+'–'+fmtPeriod(periodRange.endStr)+'<br>2AM PHT';
   $('allAmt').textContent=money(confirmedAll);$('allPhp').textContent=peso(confirmedAll*state.php);$('allCount').textContent=fmtUnits(uAll);
   document.querySelectorAll('.clbl').forEach(el=>el.textContent=unitLabel());
+  [['cardTodayTally',nToday],['weekTally',nWeek],['monthTally',nMonth],['allTally',nAll]].forEach(([id,n])=>{
+    const el=$(id);
+    el.classList.toggle('hidden',!isVideo);
+    if(isVideo)el.textContent=n+' video'+(n===1?'':'s');
+  });
   $('rateBtn').textContent=money(state.rate)+'/'+(isVideo?'hour':'track');
   $('totalCount').textContent=nAll?fmtUnits(uAll)+' '+unitLabel():'';
   $('pendIn').value=state.pending;$('failIn').value=state.failed;$('retIn').value=state.returned;
@@ -1355,14 +1385,16 @@ function renderSongs(){
     const dayUnits=rows.reduce((sum,x)=>sum+entryUnits(x),0);
     const isOpen=openDays.has(d);
     const label=d===todayStr()?'Today':dOf(d).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-    const countLabel=dayCount+' '+noun+(dayCount===1?'':'s')+(isVideo?' · '+fmtUnits(dayUnits)+' hrs':'');
+    const countLabel=dayCount+' '+noun+(dayCount===1?'':'s')+(isVideo?' · '+fmtTimecode(dayUnits*3600):'');
     html+='<div class="day-label'+(isOpen?' open':'')+'" data-day="'+d+'"><span>'+label+' · '+countLabel+'</span><em>'+money(dayUnits*state.rate)+'<span class="chev">▼</span></em></div>';
     html+='<div class="day-group'+(isOpen?' open':'')+'">';
     rows.forEach((x,i)=>{
       const time=x.ts?new Date(x.ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' · '+new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):dOf(x.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
       const durationTag=x.sec!=null?fmtTimecode(x.sec)+' · ':'';
+      const earnTag=isVideo?'<div class="earn">'+money(entryUnits(x)*state.rate)+'</div>':'';
       html+='<div class="song"><span class="idx">'+String(dayCount-i).padStart(2,'0')+'</span>'
         +'<div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div>'
+        +earnTag
         +'<button class="edit" data-edit="'+x.id+'" aria-label="Edit">✎</button>'
         +'<button class="del" data-del="'+x.id+'" aria-label="Delete">✕</button></div>';
     });
@@ -1373,12 +1405,15 @@ function renderSongs(){
 
 function renderRecent(){
   const el=$('recentList');
+  const isVideo=currentCategory==='video';
   const last=state.songs.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)).slice(0,2);
   if(!last.length){el.innerHTML='';return;}
   el.innerHTML='<div class="recentLbl">Recently logged</div>'+last.map(x=>{
     const time=x.ts?new Date(x.ts).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'';
-    const durationTag=x.sec!=null?fmtDuration(x.sec)+' · ':'';
+    const durationTag=x.sec!=null?fmtTimecode(x.sec)+' · ':'';
+    const earnTag=isVideo?'<div class="earn">'+money(entryUnits(x)*state.rate)+'</div>':'';
     return '<div class="song"><div class="mid"><div class="title">'+esc(x.title)+'</div>'+(time?'<div class="time">'+durationTag+time+'</div>':'')+'</div>'
+      +earnTag
       +'<button class="edit" data-edit="'+x.id+'" aria-label="Edit">✎</button></div>';
   }).join('');
 }
@@ -1504,7 +1539,7 @@ function askEditEntry(entry){
     '<div class="fieldLbl">Name</div><input id="editTitle" type="text">'+
     '<div class="fieldLbl">Date</div><input id="editDate" type="date">'+
     '<div class="fieldLbl">Time</div><input id="editTime" type="time">'+
-    (isVideo?'<div class="fieldLbl">Length</div><input id="editSec" type="text" placeholder="00:00:00:00">':'');
+    (isVideo?'<div class="fieldLbl">Length</div><input id="editSec" type="text" placeholder="00:00:00.0">':'');
   $('editTitle').value=entry.title;
   $('editDate').value=entry.date;
   const dt=entry.ts?new Date(entry.ts):dOf(entry.date);
@@ -1524,7 +1559,7 @@ function askEditEntry(entry){
     }
     if(isVideo){
       const sec=parseHMS($('editSec').value);
-      if(sec>0)entry.sec=Math.round(sec*100)/100;
+      if(sec>0)entry.sec=Math.round(sec*10)/10;
     }
     save();render();
     clearTimeout(saveTimer);pushState();
@@ -1566,7 +1601,7 @@ $('addBtn').addEventListener('click',()=>{
     if(!typed)missing.push('a video name or ID');
     if(!secStr||!(sec>0))missing.push('the video length');
     if(missing.length){showAlert('Missing info','Please add '+missing.join(' and ')+' before logging.');return;}
-    logSubmission(Math.round(sec*100)/100);
+    logSubmission(Math.round(sec*10)/10);
     $('secIn').value='';
     return;
   }
