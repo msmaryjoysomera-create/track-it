@@ -99,6 +99,7 @@
   .heroRow{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;
     position:relative;z-index:1;flex-wrap:wrap}
   .heroRow2{align-items:flex-start;margin-bottom:14px}
+  .heroRight{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
   .heroCount{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.02em;
     margin:6px 0 2px;font-variant-numeric:tabular-nums}
   .hero .amt{font-family:var(--mono);font-size:20px;font-weight:600;color:var(--gold);letter-spacing:-.02em;
@@ -414,10 +415,12 @@
 <div class="dashTop">
 <div class="dashLeft">
 <section class="hero">
-  <div class="eyebrow">Earned today</div>
   <div class="heroRow">
     <div class="heroCount" id="todayCountBig">0</div>
-    <div class="amt" id="todayAmt">$0.00</div>
+    <div class="heroRight">
+      <div class="eyebrow">Earned today</div>
+      <div class="amt" id="todayAmt">$0.00</div>
+    </div>
   </div>
   <div class="heroRow heroRow2">
     <div class="sub" id="todaySub"></div>
@@ -1417,10 +1420,12 @@ function render(){
   const pct=Math.min(100,(uToday/state.goal)*100);
   const fill=$('goalFill');fill.style.width=pct+'%';
   fill.classList.toggle('done',uToday>=state.goal);
-  const goalUnit=isVideo?' hrs':'';
+  const goalDone=isVideo?fmtTimecode(uToday*3600):fmtUnits(uToday);
+  const goalTarget=isVideo?fmtTimecode(state.goal*3600):state.goal;
+  const goalLeft=isVideo?fmtTimecode(Math.max(0,state.goal-uToday)*3600):fmtUnits(state.goal-uToday);
   $('goalText').innerHTML=uToday>=state.goal
-    ?'<b style="color:var(--pass)">Target hit! '+fmtUnits(uToday)+goalUnit+' / '+state.goal+goalUnit+'</b>'
-    :'<b>'+fmtUnits(uToday)+goalUnit+'</b> / '+state.goal+goalUnit+' daily target — '+fmtUnits(state.goal-uToday)+goalUnit+' to go';
+    ?'<b style="color:var(--pass)">Target hit! '+goalDone+' / '+goalTarget+'</b>'
+    :'<b>'+goalDone+'</b> / '+goalTarget+' daily target — '+goalLeft+' to go';
 
   $('subTitle').textContent=(state.name||'')+(state.name?"'s":'')+' '+CATEGORY_LABELS[currentCategory].toLowerCase()+' log';
   $('sidebarUserName').textContent=state.name||'';
