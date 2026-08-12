@@ -1393,7 +1393,7 @@ function render(){
   $('todayAmt').textContent=money(earnToday);
   $('todayCountBig').textContent=isVideo?fmtTimecode(uToday*3600):String(nToday);
   const pendVal=unpaidToday*state.rate;
-  $('todaySub').innerHTML='logged today'+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
+  $('todaySub').innerHTML='logged today'+(isVideo?' · '+nToday+' video'+(nToday===1?'':'s'):'')+(unpaidToday?' · <b>'+money(pendVal)+'</b> not yet confirmed':'');
   $('todayPhp').innerHTML=peso(earnToday*state.php)+' <small>@ ₱'+state.php.toFixed(2)+'/$ '+(rateLive?'· live rate':'· saved rate — tap to edit')+'</small><button class="refresh" id="rateRefresh" aria-label="Refresh exchange rate" title="Refresh rate">↻</button>';
   $('weekAmt').textContent=money(earnWeek);$('weekPhp').textContent=peso(earnWeek*state.php);
   $('weekCount').textContent=isVideo?fmtTimecode(uWeek*3600):fmtUnits(uWeek);
