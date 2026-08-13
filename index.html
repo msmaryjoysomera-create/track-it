@@ -638,7 +638,7 @@
 
 <div class="settingsCard" style="margin-bottom:14px">
   <div class="settingsRow" style="border-top:none">
-    <div class="settingsLbl">Timezone<small>For displaying dates & times</small></div>
+    <div class="settingsLbl">Timezone<small>Decides when a new day starts</small></div>
     <button class="settingsVal" id="setTzBtn">Device default</button>
   </div>
 </div>
@@ -713,10 +713,11 @@ let myId=null,myEmail=null;
 const $=id=>document.getElementById(id);
 const money=n=>'$'+n.toFixed(2);
 const peso=n=>'₱'+n.toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});
-const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
 
-// display-only timezone preference — never affects the PHT-anchored pay
-// period cutoff logic below, only how logged dates/times are shown
+// the chosen timezone decides which calendar day/week "today" falls into
+// for stats and Work Log grouping (so a new day starts at that timezone's
+// midnight, not the device's) — it never touches the pay-period cutoff
+// below, which always stays anchored to 2AM Philippine Time regardless
 const TIMEZONES=[
   {key:'device',label:'Device default',tz:null},
   {key:'eastern',label:'Eastern (US)',tz:'America/New_York'},
@@ -726,10 +727,37 @@ const TIMEZONES=[
   {key:'pht',label:'Philippine Time',tz:'Asia/Manila'},
 ];
 let displayTz=localStorage.getItem('trackit-tz')||'device';
-function tzOpts(base){
+function selectedTzIana(){
   const z=TIMEZONES.find(t=>t.key===displayTz);
-  return (z&&z.tz)?Object.assign({},base,{timeZone:z.tz}):base;
+  return (z&&z.tz)||null;
 }
+function tzOpts(base){
+  const tz=selectedTzIana();
+  return tz?Object.assign({},base,{timeZone:tz}):base;
+}
+// wall-clock Y/M/D (and H/M/S) for `date` as seen in IANA zone `tz` — uses
+// Intl so US zones' daylight saving shifts are handled automatically
+function partsInTz(date,tz){
+  const fmt=new Intl.DateTimeFormat('en-US',{timeZone:tz,year:'numeric',month:'2-digit',day:'2-digit',
+    hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+  const p=fmt.formatToParts(date).reduce((o,x)=>{o[x.type]=x.value;return o;},{});
+  return {y:+p.year,mo:+p.month-1,day:+p.day,hh:(+p.hour)%24,mi:+p.minute,ss:+p.second};
+}
+function dateStrInTz(date){
+  const tz=selectedTzIana();
+  if(!tz)return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+  const p=partsInTz(date,tz);
+  return p.y+'-'+String(p.mo+1).padStart(2,'0')+'-'+String(p.day).padStart(2,'0');
+}
+// device-local midnight instant of "today" as defined by the chosen timezone
+// — a plain local Date anchored to the right Y-M-D, not a literal UTC instant
+function todayStartMsInTz(now){
+  const tz=selectedTzIana();
+  if(!tz)return new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const p=partsInTz(now,tz);
+  return new Date(p.y,p.mo,p.day).getTime();
+}
+const todayStr=()=>dateStrInTz(new Date());
 
 // Music is count-based (rate is $/track, each entry = 1 unit). Video is
 // duration-based (rate is $/hour, each entry's unit value is its own
@@ -1005,8 +1033,12 @@ function periodBuckets(gran,count){
   const now=new Date();
   const buckets=[];
   if(gran==='daily'){
+    const tz=selectedTzIana();
+    let y,mo,day;
+    if(tz){const p=partsInTz(now,tz);y=p.y;mo=p.mo;day=p.day;}
+    else{y=now.getFullYear();mo=now.getMonth();day=now.getDate();}
     for(let i=count-1;i>=0;i--){
-      const start=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+      const start=new Date(y,mo,day-i);
       const end=new Date(start.getFullYear(),start.getMonth(),start.getDate()+1);
       buckets.push({label:i===0?'Today':start.toLocaleDateString('en-US',{weekday:'short'}),start,end});
     }
@@ -1165,7 +1197,7 @@ function renderEarnings(){
     if((s.ts||dt.getTime())>=mo.getTime())uMonth+=u;
   });
   const uAll=state.songs.reduce((sum,s)=>sum+entryUnits(s),0);
-  const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const todayStartMs=todayStartMsInTz(now);
 
   let u,earn;
   if(earnPeriod==='today'){u=uToday;earn=Math.max(0,uToday-(isVideo?0:qaUnpaidForWindow(todayStartMs,nowMs)))*state.rate;}
@@ -1190,7 +1222,7 @@ let qaStatusPeriod='period';
 function renderQaStatus(){
   const now=new Date(),nowMs=now.getTime();
   const wk=weekStart(now),mo=periodStart(now);
-  const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const todayStartMs=todayStartMsInTz(now);
   let rangeStart;
   if(qaStatusPeriod==='today')rangeStart=todayStartMs;
   else if(qaStatusPeriod==='week')rangeStart=wk.getTime();
@@ -1322,7 +1354,16 @@ async function fetchRate(notify,cat){
 // background regardless of which category tab is open, on top of the
 // existing manual refresh button
 setInterval(()=>fetchRate(false,'video'),15*60*1000);
-function weekStart(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x;} // Monday
+// Monday 00:00 of the week containing `d`, per the chosen display timezone
+function weekStart(d){
+  const tz=selectedTzIana();
+  let y,mo,day;
+  if(tz){const p=partsInTz(d,tz);y=p.y;mo=p.mo;day=p.day;}
+  else{y=d.getFullYear();mo=d.getMonth();day=d.getDate();}
+  const dow=(new Date(Date.UTC(y,mo,day)).getUTCDay()+6)%7; // Monday=0
+  const mondayUTC=new Date(Date.UTC(y,mo,day-dow));
+  return new Date(mondayUTC.getUTCFullYear(),mondayUTC.getUTCMonth(),mondayUTC.getUTCDate());
+}
 
 // ---- Philippine Time (UTC+8) helpers — the pay-period cutoff below is always
 // anchored to PHT, regardless of what timezone the viewing device is set to
@@ -1383,7 +1424,7 @@ function render(){
   // hard-capped at its own live count — a window can never claim to deduct
   // more pending/failed/returned than currently exist, even if an older
   // negative delta outside the window makes the raw net+orphaned sum overshoot.
-  const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const todayStartMs=todayStartMsInTz(now);
   const unpaidToday=isVideo?0:qaUnpaidForWindow(todayStartMs,nowMs);
   const unpaidWeek=isVideo?0:qaUnpaidForWindow(wk.getTime(),nowMs);
   const unpaidMonth=isVideo?0:qaUnpaidForWindow(mo.getTime(),nowMs);
@@ -1510,7 +1551,7 @@ function renderWorkLogSummary(){
     }
   });
   const nAll=state.songs.length;
-  const todayStartMs=new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const todayStartMs=todayStartMsInTz(now);
   const unpaidToday=isVideo?0:qaUnpaidForWindow(todayStartMs,nowMs);
   const unpaidWeek=isVideo?0:qaUnpaidForWindow(wk.getTime(),nowMs);
   const unpaidMonth=isVideo?0:qaUnpaidForWindow(mo.getTime(),nowMs);
@@ -1710,7 +1751,7 @@ function askEditEntry(entry){
 function askTimezone(){
   resetModal();
   $('mTitle').textContent='Timezone';
-  $('mDesc').textContent='Only changes how dates and times are displayed — pay period cutoffs always stay anchored to 2AM Philippine Time.';
+  $('mDesc').textContent='Decides which calendar day counts as "today" for logging and stats (a new day starts at midnight here). Pay-period cutoffs always stay anchored to 2AM Philippine Time regardless.';
   const custom=$('mCustom');
   custom.style.display='block';
   custom.innerHTML='<select id="tzSelect">'+TIMEZONES.map(z=>
