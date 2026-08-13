@@ -758,6 +758,14 @@ function todayStartMsInTz(now){
   return new Date(p.y,p.mo,p.day).getTime();
 }
 const todayStr=()=>dateStrInTz(new Date());
+// which calendar day an entry counts toward, re-derived from its exact
+// timestamp under the CURRENTLY selected timezone every time this is called
+// — so switching timezones (or a bug fix like this one) instantly
+// reclassifies every already-logged entry instead of leaving it stuck under
+// whatever day it happened to compute to when it was logged. Entries with no
+// timestamp (e.g. Backfilled) have nothing to re-derive from, so they keep
+// their stored date.
+const effectiveDateStr=entry=>entry.ts!=null?dateStrInTz(new Date(entry.ts)):entry.date;
 
 // Music is count-based (rate is $/track, each entry = 1 unit). Video is
 // duration-based (rate is $/hour, each entry's unit value is its own
@@ -1191,8 +1199,8 @@ function renderEarnings(){
   const t=todayStr(),wk=weekStart(now),mo=periodStart(now);
   let uToday=0,uWeek=0,uMonth=0;
   state.songs.forEach(s=>{
-    const dt=dOf(s.date),u=entryUnits(s);
-    if(s.date===t)uToday+=u;
+    const d=effectiveDateStr(s),dt=dOf(d),u=entryUnits(s);
+    if(d===t)uToday+=u;
     if(dt>=wk)uWeek+=u;
     if((s.ts||dt.getTime())>=mo.getTime())uMonth+=u;
   });
@@ -1400,8 +1408,8 @@ function render(){
   const t=todayStr(),now=new Date(),nowMs=now.getTime(),wk=weekStart(now),mo=periodStart(now);
   let uToday=0,uWeek=0,uMonth=0,nToday=0,nWeek=0,nMonth=0;
   state.songs.forEach(s=>{
-    const dt=dOf(s.date),u=entryUnits(s);
-    if(s.date===t){uToday+=u;nToday++;}
+    const d=effectiveDateStr(s),dt=dOf(d),u=entryUnits(s);
+    if(d===t){uToday+=u;nToday++;}
     if(dt>=wk){uWeek+=u;nWeek++;}
     // use the exact log timestamp (not the noon-normalized date) so a track
     // logged just after midnight but before the 2 AM cutoff still counts
@@ -1493,7 +1501,7 @@ function renderSongs(){
   }
   if(!openDays)openDays=new Set([todayStr()]);
   const byDate={};
-  state.songs.forEach(x=>{(byDate[x.date]=byDate[x.date]||[]).push(x);});
+  state.songs.forEach(x=>{const d=effectiveDateStr(x);(byDate[d]=byDate[d]||[]).push(x);});
   const dates=Object.keys(byDate).sort().reverse();
   let html='';
   dates.forEach(d=>{
@@ -1541,13 +1549,13 @@ function renderWorkLogSummary(){
   let uToday=0,uWeek=0,uMonth=0,uAll=0,nToday=0,nWeek=0,nMonth=0;
   const periodByDate={};
   state.songs.forEach(s=>{
-    const dt=dOf(s.date),u=entryUnits(s);
+    const d=effectiveDateStr(s),dt=dOf(d),u=entryUnits(s);
     uAll+=u;
-    if(s.date===t){uToday+=u;nToday++;}
+    if(d===t){uToday+=u;nToday++;}
     if(dt>=wk){uWeek+=u;nWeek++;}
     if((s.ts||dt.getTime())>=mo.getTime()){
       uMonth+=u;nMonth++;
-      (periodByDate[s.date]=periodByDate[s.date]||[]).push(s);
+      (periodByDate[d]=periodByDate[d]||[]).push(s);
     }
   });
   const nAll=state.songs.length;
@@ -1832,8 +1840,8 @@ function exportCSV(){
   rows.push(['SUBMISSIONS']);
   rows.push(isVideo?['Date',CATEGORY_LABELS.video.split(' ')[0],'Duration','Time']:['Date','Track','Time']);
   state.songs.slice().sort((a,b)=>(a.ts||0)-(b.ts||0)).forEach(s=>{
-    const time=s.ts?new Date(s.ts).toLocaleString():'';
-    rows.push(isVideo?[s.date,s.title,fmtDuration(s.sec||0),time]:[s.date,s.title,time]);
+    const time=s.ts?new Date(s.ts).toLocaleString('en-US',tzOpts({})):'';
+    rows.push(isVideo?[effectiveDateStr(s),s.title,fmtDuration(s.sec||0),time]:[effectiveDateStr(s),s.title,time]);
   });
   rows.push([]);
   const uAll=state.songs.reduce((sum,s)=>sum+entryUnits(s),0);
